@@ -23,4 +23,16 @@ class IciciBankRuleTest {
         assertEquals("6002", result.account)
         assertNotNull(result.timestamp)
     }
+
+    @Test
+    fun `uses USD spend amount instead of INR available balance`() {
+        val body = "USD 12.34 spent using ICICI Bank Card XX6002 on 02-Aug-26 on CLOUDFLARE. Avl Limit: INR 21,069.11. If not you, call 1800 2662/SMS BLOCK 6002 to 9215676766."
+        val result = rule.parse("ICICIB", body, "sms:2")
+
+        assertNotNull(result)
+        assertEquals(BigDecimal("12.34"), result!!.amount)
+        assertEquals(TransactionDirection.DEBIT, result.direction)
+        assertEquals("CLOUDFLARE", result.merchant)
+        assertEquals("6002", result.account)
+    }
 }

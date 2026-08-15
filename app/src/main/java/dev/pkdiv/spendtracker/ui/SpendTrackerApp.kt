@@ -67,7 +67,6 @@ fun SpendTrackerApp() {
                             }
                         },
                         icon = { Icon(destination.icon, contentDescription = stringResource(destination.labelRes)) },
-                        label = { Text(stringResource(destination.labelRes)) },
                     )
                 }
             }

@@ -1,6 +1,7 @@
 package dev.pkdiv.spendtracker.ingestion.sms
 
 import android.content.Context
+import android.net.Uri
 import android.provider.Telephony
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,6 +23,7 @@ class SmsReader @Inject constructor(
         withContext(Dispatchers.IO) {
             val uri = Telephony.Sms.Inbox.CONTENT_URI
             val projection = arrayOf(
+                Telephony.Sms.Inbox._ID,
                 Telephony.Sms.Inbox.ADDRESS,
                 Telephony.Sms.Inbox.BODY,
                 Telephony.Sms.Inbox.DATE,
@@ -29,16 +31,18 @@ class SmsReader @Inject constructor(
             val cursor = context.contentResolver.query(uri, projection, null, null, null)
                 ?: error("SMS inbox query returned null")
             cursor.use {
+                val idIdx = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox._ID)
                 val addressIdx = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.ADDRESS)
                 val bodyIdx = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.BODY)
                 val dateIdx = cursor.getColumnIndexOrThrow(Telephony.Sms.Inbox.DATE)
                 var processed = 0
                 while (cursor.moveToNext()) {
+                    val smsId = cursor.getLong(idIdx)
                     val sender = cursor.getString(addressIdx) ?: continue
                     val body = cursor.getString(bodyIdx) ?: continue
                     val receivedAtMillis = cursor.getLong(dateIdx)
-                    val rawMessageRef = "sms:$receivedAtMillis:${body.hashCode()}"
-                    smsProcessor.process(sender, body, rawMessageRef, receivedAtMillis)
+                    val rawMessageRef = "sms:$smsId"
+                    smsProcessor.process(sender, body, rawMessageRef, receivedAtMillis, smsId)
                     processed++
                 }
                 Log.d("SmsReader", "Backfill read $processed inbox messages")

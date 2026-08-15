@@ -81,7 +81,7 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
                         .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(text = Formatters.categoryLabel(category.category))
+                    Text(text = stringResource(Formatters.categoryLabelRes(category.category)))
                     Text(text = Formatters.amount(category.total))
                 }
             }

@@ -16,14 +16,15 @@ class SmsProcessor @Inject constructor(
         body: String,
         rawMessageRef: String,
         receivedAtMillis: Long,
+        smsId: Long? = null,
     ): ParseResult {
         return when (val result = parser.parse(sender, body, rawMessageRef)) {
             is ParseResult.Parsed -> {
-                transactionRepository.insert(result.transaction, receivedAtMillis)
+                transactionRepository.insert(result.transaction, receivedAtMillis, smsId, sender, body)
                 result
             }
             is ParseResult.Unrecognized -> {
-                transactionRepository.insertUnrecognized(sender, body, rawMessageRef, receivedAtMillis)
+                transactionRepository.insertUnrecognized(sender, body, rawMessageRef, receivedAtMillis, smsId)
                 result
             }
         }

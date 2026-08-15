@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.ingestion.sms.SmsReader
+import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.repository.TransactionRepository
 import java.math.BigDecimal
@@ -40,7 +41,7 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    transactionRepository: TransactionRepository,
+    private val transactionRepository: TransactionRepository,
     private val smsReader: SmsReader,
 ) : ViewModel() {
 
@@ -61,6 +62,10 @@ class HomeViewModel @Inject constructor(
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
+
+    fun updateCategory(id: Long, category: TransactionCategory) {
+        viewModelScope.launch { transactionRepository.updateCategory(id, category) }
+    }
 
     private val _rescanState = MutableStateFlow<RescanState>(RescanState.Idle)
     val rescanState: StateFlow<RescanState> = _rescanState.asStateFlow()

@@ -42,7 +42,12 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(state.transactions) { transaction ->
-                TransactionRow(transaction)
+                TransactionRow(
+                    transaction = transaction,
+                    onCategoryChange = { category ->
+                        viewModel.updateCategory(transaction.id, category)
+                    },
+                )
             }
         }
     }

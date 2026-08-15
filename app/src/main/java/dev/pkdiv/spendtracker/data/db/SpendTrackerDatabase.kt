@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 2,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -33,6 +33,26 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
                 db.execSQL("DELETE FROM unrecognized_messages WHERE id NOT IN (SELECT MIN(id) FROM unrecognized_messages GROUP BY rawMessageRef)")
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_transactions_rawMessageRef ON transactions (rawMessageRef)")
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_unrecognized_messages_rawMessageRef ON unrecognized_messages (rawMessageRef)")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN smsId INTEGER")
+                db.execSQL("ALTER TABLE unrecognized_messages ADD COLUMN smsId INTEGER")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN rawSender TEXT")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN rawBody TEXT")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM transactions WHERE rawSender IS NULL OR rawBody IS NULL")
             }
         }
     }

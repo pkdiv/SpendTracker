@@ -11,14 +11,19 @@ class SmsProcessor @Inject constructor(
     private val parser: ParserEngine,
     private val transactionRepository: TransactionRepository,
 ) {
-    suspend fun process(sender: String, body: String, rawMessageRef: String): ParseResult {
+    suspend fun process(
+        sender: String,
+        body: String,
+        rawMessageRef: String,
+        receivedAtMillis: Long,
+    ): ParseResult {
         return when (val result = parser.parse(sender, body, rawMessageRef)) {
             is ParseResult.Parsed -> {
-                transactionRepository.insert(result.transaction)
+                transactionRepository.insert(result.transaction, receivedAtMillis)
                 result
             }
             is ParseResult.Unrecognized -> {
-                transactionRepository.insertUnrecognized(sender, body, rawMessageRef)
+                transactionRepository.insertUnrecognized(sender, body, rawMessageRef, receivedAtMillis)
                 result
             }
         }

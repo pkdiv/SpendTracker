@@ -1,4 +1,6 @@
 *.iml
+*.keystore
+*.jks
 .gradle/
 .kotlin/
 .commandcode/

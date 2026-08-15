@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Spend Tracker</string>
-    <string name="nav_home">Today</string>
+    <string name="nav_home">This month</string>
     <string name="nav_history">History</string>
     <string name="nav_reports">Reports</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_unrecognized">Unrecognized</string>
 
-    <string name="home_total_spend">Total spend</string>
-    <string name="home_transactions_today">%1$d transactions today</string>
-    <string name="home_no_transactions">No transactions yet today</string>
+    <string name="home_total_spend">Spent this month</string>
+    <string name="home_transactions_today">%1$d transactions this month</string>
+    <string name="home_no_transactions">No transactions yet this month</string>
     <string name="home_recent">Recent</string>
     <string name="home_rescan">Read SMS now</string>
     <string name="home_rescan_done">Read %1$d messages from your inbox.</string>

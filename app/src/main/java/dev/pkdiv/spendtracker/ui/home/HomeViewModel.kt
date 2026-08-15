@@ -45,10 +45,11 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val today = LocalDate.now()
+    private val monthStart = today.withDayOfMonth(1)
 
     val uiState: StateFlow<HomeUiState> = transactionRepository
         .observeBetween(
-            today.atStartOfDay(ZoneOffset.systemDefault()).toInstant(),
+            monthStart.atStartOfDay(ZoneOffset.systemDefault()).toInstant(),
             today.plusDays(1).atStartOfDay(ZoneOffset.systemDefault()).toInstant(),
         )
         .map { txns ->

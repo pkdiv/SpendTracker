@@ -21,4 +21,7 @@ data class TransactionEntity(
     val category: TransactionCategory,
     val timestamp: Instant,
     val rawMessageRef: String,
+    val smsId: Long? = null,
+    val rawSender: String? = null,
+    val rawBody: String? = null,
 )

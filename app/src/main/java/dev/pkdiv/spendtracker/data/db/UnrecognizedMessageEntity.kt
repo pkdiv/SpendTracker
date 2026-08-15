@@ -15,4 +15,5 @@ data class UnrecognizedMessageEntity(
     val body: String,
     val rawMessageRef: String,
     val receivedAt: Instant,
+    val smsId: Long? = null,
 )

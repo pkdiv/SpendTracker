@@ -24,6 +24,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SpendTrackerDatabase =
         Room.databaseBuilder(context, SpendTrackerDatabase::class.java, "spendtracker.db")
+            .addMigrations(SpendTrackerDatabase.MIGRATION_1_2)
             .build()
 
     @Provides

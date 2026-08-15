@@ -2,13 +2,14 @@ package dev.pkdiv.spendtracker.data.db
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UnrecognizedMessageDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(message: UnrecognizedMessageEntity): Long
 
     @Query("SELECT * FROM unrecognized_messages ORDER BY receivedAt DESC")

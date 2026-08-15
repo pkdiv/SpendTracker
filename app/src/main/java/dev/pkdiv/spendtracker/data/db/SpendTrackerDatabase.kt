@@ -4,6 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import java.math.BigDecimal
@@ -15,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -23,6 +25,17 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun unrecognizedMessageDao(): UnrecognizedMessageDao
     abstract fun merchantCategoryDao(): MerchantCategoryDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DELETE FROM transactions WHERE id NOT IN (SELECT MIN(id) FROM transactions GROUP BY rawMessageRef)")
+                db.execSQL("DELETE FROM unrecognized_messages WHERE id NOT IN (SELECT MIN(id) FROM unrecognized_messages GROUP BY rawMessageRef)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_transactions_rawMessageRef ON transactions (rawMessageRef)")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_unrecognized_messages_rawMessageRef ON unrecognized_messages (rawMessageRef)")
+            }
+        }
+    }
 }
 
 class Converters {

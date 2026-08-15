@@ -21,7 +21,7 @@ class TransactionRepository @Inject constructor(
     fun observeBetween(from: Instant, to: Instant): Flow<List<TransactionEntity>> =
         transactionDao.observeBetween(from, to)
 
-    suspend fun insert(parsed: ParsedTransaction) {
+    suspend fun insert(parsed: ParsedTransaction, receivedAtMillis: Long) {
         transactionDao.insert(
             TransactionEntity(
                 amount = parsed.amount,
@@ -29,19 +29,24 @@ class TransactionRepository @Inject constructor(
                 merchant = parsed.merchant,
                 account = parsed.account,
                 category = parsed.category,
-                timestamp = parsed.timestamp ?: Instant.now(),
+                timestamp = parsed.timestamp ?: Instant.ofEpochMilli(receivedAtMillis),
                 rawMessageRef = parsed.rawMessageRef,
             )
         )
     }
 
-    suspend fun insertUnrecognized(sender: String, body: String, rawMessageRef: String) {
+    suspend fun insertUnrecognized(
+        sender: String,
+        body: String,
+        rawMessageRef: String,
+        receivedAtMillis: Long,
+    ) {
         unrecognizedMessageDao.insert(
             UnrecognizedMessageEntity(
                 sender = sender,
                 body = body,
                 rawMessageRef = rawMessageRef,
-                receivedAt = Instant.now(),
+                receivedAt = Instant.ofEpochMilli(receivedAtMillis),
             )
         )
     }

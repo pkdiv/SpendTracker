@@ -36,9 +36,9 @@ class SmsReader @Inject constructor(
                 while (cursor.moveToNext()) {
                     val sender = cursor.getString(addressIdx) ?: continue
                     val body = cursor.getString(bodyIdx) ?: continue
-                    val date = cursor.getLong(dateIdx)
-                    val rawMessageRef = "sms:$date:${body.hashCode()}"
-                    smsProcessor.process(sender, body, rawMessageRef)
+                    val receivedAtMillis = cursor.getLong(dateIdx)
+                    val rawMessageRef = "sms:$receivedAtMillis:${body.hashCode()}"
+                    smsProcessor.process(sender, body, rawMessageRef, receivedAtMillis)
                     processed++
                 }
                 Log.d("SmsReader", "Backfill read $processed inbox messages")

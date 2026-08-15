@@ -2,6 +2,7 @@ package dev.pkdiv.spendtracker.ingestion.sms
 
 import android.content.Context
 import android.provider.Telephony
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +10,7 @@ import kotlinx.coroutines.withContext
 
 @Singleton
 class SmsReader @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val smsProcessor: SmsProcessor,
 ) {
     suspend fun backfill() = withContext(Dispatchers.IO) {

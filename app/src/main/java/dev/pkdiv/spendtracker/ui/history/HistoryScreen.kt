@@ -25,7 +25,7 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp)
     ) {
         Text(
             text = stringResource(R.string.history_title),

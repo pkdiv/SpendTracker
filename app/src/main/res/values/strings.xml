@@ -11,6 +11,10 @@
     <string name="home_transactions_today">%1$d transactions today</string>
     <string name="home_no_transactions">No transactions yet today</string>
     <string name="home_recent">Recent</string>
+    <string name="home_rescan">Read SMS now</string>
+    <string name="home_rescan_done">Read %1$d messages from your inbox.</string>
+    <string name="home_rescan_no_permission">SMS permission is required to read transactions.</string>
+    <string name="home_rescan_error">Could not read messages: %1$s</string>
 
     <string name="history_title">History</string>
     <string name="history_empty">No transactions found</string>

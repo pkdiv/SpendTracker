@@ -22,10 +22,12 @@ class SmsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent) ?: return
-        val sender = messages.firstOrNull()?.originatingAddress ?: return
+        val first = messages.firstOrNull() ?: return
+        val sender = first.originatingAddress ?: return
         val body = messages.joinToString(separator = "") { it.messageBody ?: "" }
+        val rawMessageRef = "sms:${first.timestampMillis}:${body.hashCode()}"
         scope.launch {
-            runCatching { smsProcessor.process(sender, body, sender) }
+            runCatching { smsProcessor.process(sender, body, rawMessageRef) }
                 .onFailure { Log.e("SmsReceiver", "Failed to process SMS", it) }
         }
     }

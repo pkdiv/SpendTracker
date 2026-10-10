@@ -41,7 +41,10 @@ import java.time.ZoneId
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
+fun HistoryScreen(
+    onTransactionClick: (Long) -> Unit = {},
+    viewModel: HistoryViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val zone = remember { ZoneId.systemDefault() }
     val sections = remember(state.transactions) {
@@ -125,6 +128,7 @@ fun HistoryScreen(viewModel: HistoryViewModel = hiltViewModel()) {
                     items(transactions, key = { it.id }) { transaction ->
                         TransactionRow(
                             transaction = transaction,
+                            onTransactionClick = onTransactionClick,
                             onCategoryChange = { category ->
                                 viewModel.updateCategory(transaction.id, category)
                             },

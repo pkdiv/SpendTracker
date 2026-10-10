@@ -7,7 +7,9 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -25,6 +27,7 @@ object Formatters {
 
     private val dateFormatter = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
     private val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM, HH:mm", Locale.getDefault())
 
     data class AmountParts(val whole: String, val paise: String)
 
@@ -62,6 +65,10 @@ object Formatters {
 
     /** Month header label, e.g. "October 2026". */
     fun monthLabel(date: LocalDate): String = date.format(monthFormatter)
+
+    /** Received-time label, e.g. "12 Oct, 14:30". */
+    fun dateTimeLabel(instant: Instant): String =
+        instant.atZone(ZoneId.systemDefault()).format(dateTimeFormatter)
 
     @StringRes
     fun categoryLabelRes(category: TransactionCategory): Int = when (category) {

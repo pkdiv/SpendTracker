@@ -78,6 +78,29 @@
     <string name="unrecognized_empty_message">Every message was recognized as a transaction.</string>
     <string name="action_recognize">Dismiss</string>
 
+    <!-- Transaction detail -->
+    <string name="detail_title">Transaction</string>
+    <string name="detail_back">Back</string>
+    <string name="detail_more">More options</string>
+    <string name="detail_copy_message">Copy message</string>
+    <string name="detail_change_category">Change category</string>
+    <string name="detail_original_message">Original message</string>
+    <string name="detail_account">Account / card</string>
+    <string name="detail_reference">Reference ID</string>
+    <string name="detail_source">Source</string>
+    <string name="detail_source_sms">SMS</string>
+    <string name="detail_source_email">Email</string>
+    <string name="detail_date">Date</string>
+    <string name="detail_unknown_sender">Unknown sender</string>
+    <string name="detail_reveal_code">Reveal code</string>
+    <string name="detail_hide_code">Hide code</string>
+    <string name="detail_show_full">Show full message</string>
+    <string name="detail_show_less">Show less</string>
+    <string name="detail_truncated">Message truncated</string>
+    <string name="detail_unavailable_title">Original message unavailable</string>
+    <string name="detail_unavailable_deleted">The source message was deleted from this device.</string>
+    <string name="detail_unavailable_permission">SMS permission is required to show the original message.</string>
+
     <!-- Categories -->
     <string name="category_food">Food</string>
     <string name="category_transport">Transport</string>

@@ -89,7 +89,11 @@ private fun CategoryRowPreview() {
 private fun TransactionRowPreview() {
     PreviewScaffold {
         PreviewData.transactions.forEach { transaction ->
-            TransactionRow(transaction = transaction, onCategoryChange = {})
+            TransactionRow(
+                transaction = transaction,
+                onTransactionClick = {},
+                onCategoryChange = {},
+            )
         }
     }
 }

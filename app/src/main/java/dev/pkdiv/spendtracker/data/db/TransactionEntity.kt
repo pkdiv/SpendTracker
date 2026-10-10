@@ -24,4 +24,10 @@ data class TransactionEntity(
     val smsId: Long? = null,
     val rawSender: String? = null,
     val rawBody: String? = null,
+    // Added in schema v6. Legacy rows carry nulls until the backfill/normalization runs.
+    val source: TransactionSource? = null,
+    val sourceRef: String? = null,
+    val rawSubject: String? = null,
+    val receivedAt: Long? = null,
+    val bodyTruncated: Boolean? = null,
 )

@@ -1,10 +1,12 @@
 package dev.pkdiv.spendtracker.ui.components
 
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
+import dev.pkdiv.spendtracker.data.db.TransactionSource
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.reports.CategorySpend
 import dev.pkdiv.spendtracker.reports.MerchantSpend
+import dev.pkdiv.spendtracker.repository.TransactionDetail
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -37,9 +39,9 @@ object PreviewData {
     val transactions: List<TransactionEntity> = listOf(
         transaction(1, "Swiggy", "450.00", category = TransactionCategory.FOOD, daysAgo = 0),
         transaction(2, "Uber", "182.50", category = TransactionCategory.TRANSPORT, daysAgo = 0),
-        transaction(3, "Amazon", "2,340.00", category = TransactionCategory.SHOPPING, daysAgo = 1),
+        transaction(3, "Amazon", "2340.00", category = TransactionCategory.SHOPPING, daysAgo = 1),
         transaction(4, "Airtel", "799.00", category = TransactionCategory.BILLS, daysAgo = 1),
-        transaction(5, "Salary", "85,000.00", direction = TransactionDirection.CREDIT, category = TransactionCategory.OTHER, daysAgo = 2),
+        transaction(5, "Salary", "85000.00", direction = TransactionDirection.CREDIT, category = TransactionCategory.OTHER, daysAgo = 2),
     )
 
     val categories: List<CategorySpend> = listOf(
@@ -61,4 +63,42 @@ object PreviewData {
         "320", "0", "910", "540", "1200", "300", "0", "480", "700", "260",
         "880", "410", "0", "560", "940",
     ).map { BigDecimal(it) }
+
+    val smsDetail: TransactionDetail = TransactionDetail(
+        id = 1,
+        amount = BigDecimal("450.00"),
+        direction = TransactionDirection.DEBIT,
+        merchant = "Swiggy",
+        account = "1234",
+        category = TransactionCategory.FOOD,
+        timestamp = now,
+        reference = "sms:7",
+        source = TransactionSource.SMS,
+        sender = "HDFCBK",
+        subject = null,
+        receivedAt = now,
+        body = "Rs.450 debited from A/c **1234 to Swiggy on 10-10-2026. Avl bal Rs.12,340.00. OTP is 123456.",
+        bodyTruncated = false,
+    )
+
+    val emailDetail: TransactionDetail = TransactionDetail(
+        id = 2,
+        amount = BigDecimal("2340.00"),
+        direction = TransactionDirection.DEBIT,
+        merchant = "Amazon",
+        account = "4321",
+        category = TransactionCategory.SHOPPING,
+        timestamp = now,
+        reference = "email:<message-id@example>",
+        source = TransactionSource.EMAIL,
+        sender = "orders@amazon.in",
+        subject = "Your order receipt #112-233",
+        receivedAt = now,
+        body = buildString {
+            repeat(14) { index ->
+                appendLine("Order line $index — details of this purchase wrap across multiple lines on a narrow phone screen so the message collapses.")
+            }
+        }.trim(),
+        bodyTruncated = false,
+    )
 }

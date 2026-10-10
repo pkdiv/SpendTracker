@@ -34,12 +34,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import dev.pkdiv.spendtracker.MainViewModel
 import dev.pkdiv.spendtracker.R
+import dev.pkdiv.spendtracker.ui.detail.TransactionDetailScreen
 import dev.pkdiv.spendtracker.ui.history.HistoryScreen
 import dev.pkdiv.spendtracker.ui.home.HomeScreen
 import dev.pkdiv.spendtracker.ui.reports.ReportsScreen
@@ -125,12 +128,25 @@ fun SpendTrackerApp() {
             },
         ) {
             composable(ROUTE_HOME) {
-                HomeScreen(onNavigateToInsights = { navController.navigateToTab(ROUTE_REPORTS) })
+                HomeScreen(
+                    onNavigateToInsights = { navController.navigateToTab(ROUTE_REPORTS) },
+                    onTransactionClick = { id -> navController.navigate("transaction/$id") },
+                )
             }
-            composable(ROUTE_HISTORY) { HistoryScreen() }
+            composable(ROUTE_HISTORY) {
+                HistoryScreen(
+                    onTransactionClick = { id -> navController.navigate("transaction/$id") },
+                )
+            }
             composable(ROUTE_REPORTS) { ReportsScreen() }
             composable(ROUTE_ALERTS) { UnrecognizedScreen() }
             composable(ROUTE_SETTINGS) { SettingsScreen() }
+            composable(
+                route = "transaction/{id}",
+                arguments = listOf(navArgument("id") { type = NavType.LongType }),
+            ) {
+                TransactionDetailScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }

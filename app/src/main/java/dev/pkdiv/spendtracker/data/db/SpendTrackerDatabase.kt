@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -55,6 +55,24 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
                 db.execSQL("DELETE FROM transactions WHERE rawSender IS NULL OR rawBody IS NULL")
             }
         }
+
+        /**
+         * Adds message-source metadata. Non-destructive: new columns are nullable and
+         * backfilled from existing data (source defaults to SMS, receivedAt to the
+         * parsed timestamp, sourceRef to the SMS row id).
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN source TEXT")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN sourceRef TEXT")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN rawSubject TEXT")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN receivedAt INTEGER")
+                db.execSQL("ALTER TABLE transactions ADD COLUMN bodyTruncated INTEGER")
+                db.execSQL("UPDATE transactions SET source = 'SMS' WHERE source IS NULL")
+                db.execSQL("UPDATE transactions SET receivedAt = timestamp WHERE receivedAt IS NULL")
+                db.execSQL("UPDATE transactions SET sourceRef = CAST(smsId AS TEXT) WHERE sourceRef IS NULL AND smsId IS NOT NULL")
+            }
+        }
     }
 }
 
@@ -82,4 +100,10 @@ class Converters {
 
     @TypeConverter
     fun toCategory(value: String): TransactionCategory = TransactionCategory.valueOf(value)
+
+    @TypeConverter
+    fun fromSource(value: TransactionSource): String = value.name
+
+    @TypeConverter
+    fun toSource(value: String): TransactionSource = TransactionSource.valueOf(value)
 }

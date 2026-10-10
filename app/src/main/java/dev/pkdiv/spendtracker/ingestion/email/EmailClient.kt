@@ -5,6 +5,8 @@ data class EmailMessage(
     val subject: String,
     val body: String,
     val rawMessageRef: String,
+    val messageId: String?,
+    val receivedAtMillis: Long,
 )
 
 interface EmailClient {

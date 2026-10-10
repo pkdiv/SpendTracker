@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.pkdiv.spendtracker.R
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
@@ -42,11 +44,13 @@ import java.time.ZoneId
 
 /**
  * Transaction row: category icon, merchant, editable category, relative date and a
- * right-aligned signed amount. Tapping the row opens the category menu.
+ * right-aligned signed amount. Tapping the row opens the detail view; category editing
+ * lives in the trailing overflow button.
  */
 @Composable
 fun TransactionRow(
     transaction: TransactionEntity,
+    onTransactionClick: (Long) -> Unit,
     onCategoryChange: (TransactionCategory) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -64,14 +68,19 @@ fun TransactionRow(
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
-        Box {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .padding(start = 12.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 64.dp)
-                    .clickable { showCategoryMenu = true }
+                    .weight(1f)
+                    .clickable { onTransactionClick(transaction.id) }
                     .semantics(mergeDescendants = true) {}
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                    .padding(vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
@@ -109,12 +118,6 @@ fun TransactionRow(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Icon(
-                            imageVector = Icons.Filled.ArrowDropDown,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
-                        )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = relativeDateLabel(date),
@@ -133,18 +136,29 @@ fun TransactionRow(
                 )
             }
 
-            DropdownMenu(
-                expanded = showCategoryMenu,
-                onDismissRequest = { showCategoryMenu = false },
-            ) {
-                TransactionCategory.entries.forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(Formatters.categoryLabelRes(category))) },
-                        onClick = {
-                            showCategoryMenu = false
-                            onCategoryChange(category)
-                        },
+            Box {
+                IconButton(
+                    onClick = { showCategoryMenu = true },
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.detail_change_category),
                     )
+                }
+                DropdownMenu(
+                    expanded = showCategoryMenu,
+                    onDismissRequest = { showCategoryMenu = false },
+                ) {
+                    TransactionCategory.entries.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Formatters.categoryLabelRes(category))) },
+                            onClick = {
+                                showCategoryMenu = false
+                                onCategoryChange(category)
+                            },
+                        )
+                    }
                 }
             }
         }

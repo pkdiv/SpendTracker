@@ -17,6 +17,12 @@ interface TransactionDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(transactions: List<TransactionEntity>): List<Long>
 
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    fun observeById(id: Long): Flow<TransactionEntity?>
+
+    @Query("SELECT * FROM transactions WHERE rawBody IS NULL AND source = 'SMS' AND smsId IS NOT NULL LIMIT :limit")
+    suspend fun pendingRawMessages(limit: Int): List<TransactionEntity>
+
     @Query("SELECT * FROM transactions ORDER BY timestamp DESC")
     fun observeAll(): Flow<List<TransactionEntity>>
 
@@ -31,4 +37,7 @@ interface TransactionDao {
 
     @Query("UPDATE transactions SET rawSender = :sender, rawBody = :body WHERE rawMessageRef = :rawMessageRef")
     suspend fun updateRawMessage(rawMessageRef: String, sender: String, body: String)
+
+    @Query("UPDATE transactions SET rawSender = :sender, rawBody = :body, bodyTruncated = :truncated WHERE id = :id")
+    suspend fun updateRawMessageById(id: Long, sender: String, body: String, truncated: Boolean)
 }

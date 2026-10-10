@@ -52,6 +52,7 @@ import java.time.YearMonth
 @Composable
 fun HomeScreen(
     onNavigateToInsights: () -> Unit = {},
+    onTransactionClick: (Long) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -188,6 +189,7 @@ fun HomeScreen(
                     items(section.transactions, key = { it.id }) { transaction ->
                         TransactionRow(
                             transaction = transaction,
+                            onTransactionClick = onTransactionClick,
                             onCategoryChange = { category ->
                                 viewModel.updateCategory(transaction.id, category)
                             },

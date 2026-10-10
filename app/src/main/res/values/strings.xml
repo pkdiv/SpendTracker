@@ -1,42 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Spend Tracker</string>
-    <string name="nav_home">This month</string>
-    <string name="nav_history">History</string>
-    <string name="nav_reports">Reports</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_history">Activity</string>
+    <string name="nav_reports">Insights</string>
     <string name="nav_settings">Settings</string>
-    <string name="nav_unrecognized">Unrecognized</string>
+    <string name="nav_unrecognized">Alerts</string>
 
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+
+    <!-- Home -->
     <string name="home_total_spend">Spent this month</string>
-    <string name="home_transactions_today">%1$d transactions this month</string>
-    <string name="home_no_transactions">No transactions yet this month</string>
+    <string name="home_transactions_today">%1$d transactions</string>
+    <string name="home_sparkline_desc">Daily spending trend this month</string>
+    <string name="home_chip_today">Today</string>
+    <string name="home_chip_week">This week</string>
+    <string name="home_chip_avg">Daily avg</string>
+    <string name="home_top_categories">Top categories</string>
+    <string name="home_see_all">See all</string>
     <string name="home_recent">Recent</string>
-    <string name="home_rescan">Read SMS now</string>
-    <string name="home_rescan_done">Read %1$d messages from your inbox.</string>
-    <string name="home_rescan_no_permission">SMS permission is required to read transactions.</string>
-    <string name="home_rescan_error">Could not read messages: %1$s</string>
+    <string name="home_empty_title">No transactions yet</string>
+    <string name="home_empty_message">Sync your messages to see this month\'s spending.</string>
+    <string name="home_sync">Sync</string>
+    <string name="home_syncing">Syncing…</string>
+    <string name="home_sync_done">%1$d messages synced</string>
+    <string name="home_sync_error">Sync failed: %1$s</string>
+    <string name="home_sync_retry">Retry</string>
+    <string name="home_no_permission">SMS permission is required to read transactions.</string>
 
-    <string name="history_title">History</string>
+    <!-- Month selector -->
+    <string name="month_previous">Previous month</string>
+    <string name="month_next">Next month</string>
+    <string name="month_pick">Pick a month</string>
+    <string name="month_previous_year">Previous year</string>
+    <string name="month_next_year">Next year</string>
+
+    <!-- Activity / history -->
+    <string name="history_title">Activity</string>
     <string name="history_empty">No transactions found</string>
+    <string name="history_search_hint">Search merchant or amount</string>
+    <string name="history_filter_all">All</string>
+    <string name="history_filter_category">Category</string>
+    <string name="history_clear_filters">Clear filters</string>
 
-    <string name="reports_title">Reports</string>
+    <!-- Insights / reports -->
+    <string name="reports_title">Insights</string>
     <string name="reports_eod">End of day</string>
     <string name="reports_eom">End of month</string>
     <string name="reports_month_total">Month total</string>
     <string name="reports_previous_month">Previous month</string>
-    <string name="reports_top_merchants">Top merchants</string>
     <string name="reports_by_category">By category</string>
+    <string name="reports_top_merchants">Top merchants</string>
+    <string name="reports_donut_desc">Spending share by category</string>
+    <string name="reports_mom_desc">This month compared with last month</string>
+    <string name="reports_empty">No spending recorded for this month yet</string>
 
+    <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_eod_time">EOD report time</string>
-    <string name="settings_notifications">Notifications</string>
-    <string name="settings_request_permissions">Request permissions</string>
+    <string name="settings_section_reports">Reports</string>
+    <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_eod_time">End-of-day report time</string>
+    <string name="settings_notifications">End-of-day notifications</string>
+    <string name="settings_notifications_hint">Get a daily summary notification</string>
+    <string name="settings_sms_permission">SMS access</string>
+    <string name="settings_notification_permission">Notifications</string>
+    <string name="settings_permission_granted">Granted</string>
+    <string name="settings_permission_denied">Not granted</string>
+    <string name="settings_time_pick">Pick a time</string>
+    <string name="settings_time_confirm">OK</string>
+    <string name="settings_time_cancel">Cancel</string>
 
-    <string name="unrecognized_title">Unrecognized messages</string>
-    <string name="unrecognized_empty">Nothing here — every message was recognized</string>
-    <string name="action_recognize">Recognize</string>
-    <string name="action_close">Close</string>
+    <!-- Alerts / unrecognized -->
+    <string name="unrecognized_title">Alerts</string>
+    <string name="unrecognized_empty">You\'re all caught up</string>
+    <string name="unrecognized_empty_message">Every message was recognized as a transaction.</string>
+    <string name="action_recognize">Dismiss</string>
 
+    <!-- Categories -->
     <string name="category_food">Food</string>
     <string name="category_transport">Transport</string>
     <string name="category_shopping">Shopping</string>
@@ -51,7 +93,4 @@
 
     <string name="notification_channel_eod">End of day reports</string>
     <string name="notification_channel_eom">End of month reports</string>
-
-    <string name="amount_debit">−%1$s</string>
-    <string name="amount_credit">+%1$s</string>
 </resources>

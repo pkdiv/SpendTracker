@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 data class ReportsUiState(
     val loading: Boolean = true,
+    val month: LocalDate = LocalDate.now().withDayOfMonth(1),
     val report: MonthlyReport? = null,
 )
 
@@ -31,9 +32,9 @@ class ReportsViewModel @Inject constructor(
 
     fun loadMonth(month: LocalDate) {
         viewModelScope.launch {
-            _uiState.value = ReportsUiState(loading = true)
+            _uiState.value = ReportsUiState(loading = true, month = month)
             val report = reportGenerator.monthlyReport(month)
-            _uiState.value = ReportsUiState(loading = false, report = report)
+            _uiState.value = ReportsUiState(loading = false, month = month, report = report)
         }
     }
 

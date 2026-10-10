@@ -10,12 +10,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dev.pkdiv.spendtracker.ui.SpendTrackerApp
+import dev.pkdiv.spendtracker.ui.theme.SpendTrackerTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MaterialTheme {
+            SpendTrackerTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     SpendTrackerApp()
                 }

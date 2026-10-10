@@ -48,4 +48,8 @@ class SettingsViewModel @Inject constructor(
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch { settingsStore.setNotificationsEnabled(enabled) }
     }
+
+    fun setEodTime(hour: Int, minute: Int) {
+        viewModelScope.launch { settingsStore.setEodTime(hour, minute) }
+    }
 }

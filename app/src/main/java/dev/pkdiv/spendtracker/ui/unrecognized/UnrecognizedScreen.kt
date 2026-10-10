@@ -2,62 +2,122 @@ package dev.pkdiv.spendtracker.ui.unrecognized
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.pkdiv.spendtracker.R
+import dev.pkdiv.spendtracker.data.db.UnrecognizedMessageEntity
+import dev.pkdiv.spendtracker.ui.components.EmptyState
+import dev.pkdiv.spendtracker.ui.components.relativeDateLabel
+import dev.pkdiv.spendtracker.ui.theme.SpendTheme
+import java.time.ZoneId
 
 @Composable
 fun UnrecognizedScreen(viewModel: UnrecognizedViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Text(
             text = stringResource(R.string.unrecognized_title),
             style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         )
 
         if (state.messages.isEmpty()) {
+            EmptyState(
+                title = stringResource(R.string.unrecognized_empty),
+                message = stringResource(R.string.unrecognized_empty_message),
+                modifier = Modifier.padding(16.dp),
+                icon = Icons.Filled.Notifications,
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(state.messages, key = { it.id }) { message ->
+                    AlertCard(
+                        message = message,
+                        onDismiss = { viewModel.dismiss(message.id) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit) {
+    val zone = remember { ZoneId.systemDefault() }
+    val date = remember(message.receivedAt) { message.receivedAt.atZone(zone).toLocalDate() }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {}
+                .padding(12.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.Notifications,
+                    contentDescription = null,
+                    tint = SpendTheme.colors.warning,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = message.sender,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = relativeDateLabel(date),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             Text(
-                text = stringResource(R.string.unrecognized_empty),
+                text = message.body,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            return@Column
-        }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(state.messages) { message ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = message.sender,
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                        Text(
-                            text = message.body,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        TextButton(onClick = { viewModel.dismiss(message.id) }) {
-                            Text(stringResource(R.string.action_recognize))
-                        }
-                    }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.action_recognize))
                 }
             }
         }

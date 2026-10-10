@@ -56,7 +56,7 @@ class HomeViewModel @Inject constructor(
         .map { txns ->
             HomeUiState(
                 totalSpend = txns
-                    .filter { it.direction == TransactionDirection.DEBIT }
+                    .filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER }
                     .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
                 transactions = txns,
             )

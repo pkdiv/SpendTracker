@@ -59,6 +59,20 @@ class ReportAggregatorTest {
     }
 
     @Test
+    fun `self transfer debits are excluded from spend`() {
+        val transactions = listOf(
+            txn("500.00", "Self account", TransactionCategory.SELF_TRANSFER),
+            txn("100.00", "Merchant A", TransactionCategory.FOOD),
+        )
+
+        val report = ReportAggregator.daily(transactions)
+
+        assertEquals(BigDecimal("100.00"), report.totalSpend)
+        assertEquals(1, report.categories.size)
+        assertEquals("Merchant A", report.top.first().merchant)
+    }
+
+    @Test
     fun `empty transactions produce zero report`() {
         val report = ReportAggregator.daily(emptyList())
         assertEquals(BigDecimal.ZERO, report.totalSpend)

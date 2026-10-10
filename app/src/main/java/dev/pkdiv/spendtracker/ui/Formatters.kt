@@ -21,5 +21,6 @@ object Formatters {
         TransactionCategory.ENTERTAINMENT -> R.string.category_entertainment
         TransactionCategory.HEALTH -> R.string.category_health
         TransactionCategory.OTHER -> R.string.category_other
+        TransactionCategory.SELF_TRANSFER -> R.string.category_self_transfer
     }
 }

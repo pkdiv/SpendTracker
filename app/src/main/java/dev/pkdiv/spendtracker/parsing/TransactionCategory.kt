@@ -10,4 +10,5 @@ enum class TransactionCategory {
     ENTERTAINMENT,
     HEALTH,
     OTHER,
+    SELF_TRANSFER,
 }

@@ -1,13 +1,17 @@
 package dev.pkdiv.spendtracker.reports
 
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
+import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import java.math.BigDecimal
 
 object ReportAggregator {
 
+    private fun List<TransactionEntity>.spend() =
+        filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER }
+
     fun daily(transactions: List<TransactionEntity>): DailyReport {
-        val debits = transactions.filter { it.direction == TransactionDirection.DEBIT }
+        val debits = transactions.spend()
         return DailyReport(
             totalSpend = debits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
             transactionCount = transactions.size,
@@ -17,8 +21,8 @@ object ReportAggregator {
     }
 
     fun monthly(transactions: List<TransactionEntity>, previousTransactions: List<TransactionEntity>): MonthlyReport {
-        val debits = transactions.filter { it.direction == TransactionDirection.DEBIT }
-        val prevDebits = previousTransactions.filter { it.direction == TransactionDirection.DEBIT }
+        val debits = transactions.spend()
+        val prevDebits = previousTransactions.spend()
         return MonthlyReport(
             totalSpend = debits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
             transactionCount = transactions.size,

@@ -31,7 +31,7 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 
 ## Requirements
 
-- JDK 21 — AGP 8.7 does not support JDK 24/25, so newer Homebrew default JDKs will fail
+- JDK 21 — AGP 8.13 does not support JDK 24/25, so newer Homebrew default JDKs will fail
 - Android SDK 35
 
 ## Build
@@ -86,7 +86,7 @@ The core SMS → parse → store → report flow is implemented and covered by u
 
 ## Releases
 
-Pushing a `v*` tag (for example `v0.1.0`) triggers the GitHub Actions workflow to build, run tests, and attach the release APK to a GitHub Release. The APK is unsigned until a signing keystore is configured.
+Pushing a `v*` tag (for example `v0.1.0`) — or a manual `workflow_dispatch` run — triggers the GitHub Actions workflow to build, run tests, and attach a release APK to a GitHub Release. The release APK is signed in CI from a keystore stored as repository secrets.
 
 ## Contributing
 

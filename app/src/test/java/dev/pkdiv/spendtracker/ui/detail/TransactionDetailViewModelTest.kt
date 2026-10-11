@@ -1,6 +1,7 @@
 package dev.pkdiv.spendtracker.ui.detail
 
 import android.Manifest
+import android.app.Application
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
@@ -27,15 +28,18 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowApplication
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class TransactionDetailViewModelTest {
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
+        ShadowApplication.getInstance().denyPermissions(Manifest.permission.READ_SMS)
     }
 
     @After

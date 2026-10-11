@@ -1,5 +1,6 @@
 package dev.pkdiv.spendtracker.data.db
 
+import android.app.Application
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
@@ -11,12 +12,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Drives [SpendTrackerDatabase.MIGRATION_5_6] against a v5-shaped database and asserts
  * existing rows survive and the new message-source columns are populated.
  */
 @RunWith(RobolectricTestRunner::class)
+@Config(application = Application::class)
 class Migration5To6Test {
 
     private val v5Schema = """

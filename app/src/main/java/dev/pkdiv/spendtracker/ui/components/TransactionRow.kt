@@ -62,6 +62,9 @@ fun TransactionRow(
         transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate()
     }
     val amountText = (if (isCredit) "+" else "−") + Formatters.formatInr(transaction.amount)
+    val merchantText = remember(transaction.merchant, transaction.rawSender) {
+        Formatters.merchantLabel(transaction.merchant, transaction.rawSender)
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -102,7 +105,7 @@ fun TransactionRow(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = transaction.merchant,
+                        text = merchantText,
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

@@ -15,6 +15,8 @@ import java.util.Locale
 
 object Formatters {
 
+    private const val UNKNOWN_MERCHANT = "Unknown"
+
     private val inLocale = Locale("en", "IN")
     private val currencySymbol: String = DecimalFormatSymbols(inLocale).currencySymbol
     private val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(inLocale)
@@ -54,6 +56,18 @@ object Formatters {
 
     /** Compact fallback date label, e.g. "12 Oct". */
     fun dateLabel(date: LocalDate): String = date.format(dateFormatter)
+
+    /**
+     * Card title for a transaction. When the merchant couldn't be parsed it is
+     * stored as [UNKNOWN_MERCHANT]; in that case append the raw sender in
+     * parentheses so the row still identifies who the message came from.
+     */
+    fun merchantLabel(merchant: String, sender: String?): String =
+        if (merchant == UNKNOWN_MERCHANT) {
+            sender?.let { "$merchant ($it)" } ?: merchant
+        } else {
+            merchant
+        }
 
     /** Today / Yesterday as resources, or null to fall back to [dateLabel]. */
     @StringRes

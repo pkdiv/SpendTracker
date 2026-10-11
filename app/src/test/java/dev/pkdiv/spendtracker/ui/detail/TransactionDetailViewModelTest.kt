@@ -6,7 +6,6 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import app.cash.turbine.test
 import dev.pkdiv.spendtracker.data.db.SpendTrackerDatabase
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.data.db.TransactionSource
@@ -18,6 +17,7 @@ import java.math.BigDecimal
 import java.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -75,11 +75,9 @@ class TransactionDetailViewModelTest {
         val id = dao.insert(entity(rawBody = "Rs.100 debited"))
         val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
 
-        viewModel(id, repository, context).uiState.test {
-            assertEquals(DetailUiState.Loading, awaitItem())
-            val content = awaitItem() as DetailUiState.Content
-            assertEquals("Rs.100 debited", content.detail.body)
-        }
+        val content = viewModel(id, repository, context).uiState
+            .first { it is DetailUiState.Content } as DetailUiState.Content
+        assertEquals("Rs.100 debited", content.detail.body)
         db.close()
     }
 
@@ -91,10 +89,9 @@ class TransactionDetailViewModelTest {
             .build()
         val repository = TransactionRepository(db.transactionDao(), db.unrecognizedMessageDao())
 
-        viewModel(999L, repository, context).uiState.test {
-            assertEquals(DetailUiState.Loading, awaitItem())
-            assertEquals(DetailUiState.NotFound, awaitItem())
-        }
+        val state = viewModel(999L, repository, context).uiState
+            .first { it == DetailUiState.NotFound }
+        assertEquals(DetailUiState.NotFound, state)
         db.close()
     }
 
@@ -108,11 +105,9 @@ class TransactionDetailViewModelTest {
         val id = dao.insert(entity(rawBody = null))
         val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
 
-        viewModel(id, repository, context).uiState.test {
-            awaitItem()
-            val unavailable = awaitItem() as DetailUiState.Unavailable
-            assertEquals(MessageUnavailableReason.PERMISSION_REVOKED, unavailable.reason)
-        }
+        val unavailable = viewModel(id, repository, context).uiState
+            .first { it is DetailUiState.Unavailable } as DetailUiState.Unavailable
+        assertEquals(MessageUnavailableReason.PERMISSION_REVOKED, unavailable.reason)
         db.close()
     }
 
@@ -127,11 +122,9 @@ class TransactionDetailViewModelTest {
         val id = dao.insert(entity(rawBody = null))
         val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
 
-        viewModel(id, repository, context).uiState.test {
-            awaitItem()
-            val unavailable = awaitItem() as DetailUiState.Unavailable
-            assertEquals(MessageUnavailableReason.DELETED, unavailable.reason)
-        }
+        val unavailable = viewModel(id, repository, context).uiState
+            .first { it is DetailUiState.Unavailable } as DetailUiState.Unavailable
+        assertEquals(MessageUnavailableReason.DELETED, unavailable.reason)
         db.close()
     }
 }

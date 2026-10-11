@@ -59,12 +59,12 @@ object Formatters {
 
     /**
      * Card title for a transaction. When the merchant couldn't be parsed it is
-     * stored as [UNKNOWN_MERCHANT]; in that case append the raw sender in
-     * parentheses so the row still identifies who the message came from.
+     * stored as [UNKNOWN_MERCHANT]; in that case lead with the raw sender and
+     * put the parsed merchant in parentheses so the row still identifies both.
      */
     fun merchantLabel(merchant: String, sender: String?): String =
         if (merchant == UNKNOWN_MERCHANT) {
-            sender?.let { "$merchant ($it)" } ?: merchant
+            sender?.let { "$it ($merchant)" } ?: merchant
         } else {
             merchant
         }

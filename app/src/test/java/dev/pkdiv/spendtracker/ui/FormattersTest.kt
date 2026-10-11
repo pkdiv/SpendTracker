@@ -11,8 +11,8 @@ class FormattersTest {
     }
 
     @Test
-    fun merchantLabelAppendsSenderWhenMerchantIsUnknown() {
-        assertEquals("Unknown (HDFC-BANK)", Formatters.merchantLabel("Unknown", "HDFC-BANK"))
+    fun merchantLabelLeadsWithSenderWhenMerchantIsUnknown() {
+        assertEquals("HDFC-BANK (Unknown)", Formatters.merchantLabel("Unknown", "HDFC-BANK"))
     }
 
     @Test

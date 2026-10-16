@@ -145,9 +145,16 @@ Priority tiers:
     currency detection in `AmountParser` and per-currency formatting if/when the
     supported banks span multiple currencies.
 
-- [ ] **Search & filter refinements (Activity)**
+- [x] **Search & filter refinements (Activity)**
   - Already has merchant/amount search + category filter. Extend: date range,
     amount range, direction (in/out), exclude duplicates.
+  - Done: `HistoryFilters` + a pure `filterTransactions(...)` drive the filters;
+    `HistoryViewModel` combines them with `observeAll()` in-memory (no DAO/schema
+    change) and the Activity screen gains a Filters chip + `HistoryFilterSheet`
+    (direction, date range, amount range, hide duplicates) with "Clear filters".
+    Filtered-out results show a distinct empty state. Covered by
+    `HistoryFiltersTest` (pure), `HistoryViewModelTest`, and
+    `HistoryFilterContentTest` (Compose, `src/testDebug`).
 
 - [ ] **Receipt attachment (local only)**
   - Optionally attach a photo per transaction, stored as a file URI (never in

@@ -40,10 +40,34 @@
     <!-- Activity / history -->
     <string name="history_title">Activity</string>
     <string name="history_empty">No transactions found</string>
+    <string name="history_empty_message">Transactions from your messages will appear here.</string>
+    <string name="history_no_matches">No matching transactions</string>
+    <string name="history_no_matches_message">Try adjusting your search or filters.</string>
     <string name="history_search_hint">Search merchant or amount</string>
     <string name="history_filter_all">All</string>
     <string name="history_filter_category">Category</string>
     <string name="history_clear_filters">Clear filters</string>
+
+    <!-- Activity filters -->
+    <string name="history_filters">Filters</string>
+    <string name="history_filters_count">Filters (%1$d)</string>
+    <string name="history_filter_done">Done</string>
+    <string name="history_filter_direction">Direction</string>
+    <string name="history_direction_all">All</string>
+    <string name="history_direction_in">Money in</string>
+    <string name="history_direction_out">Money out</string>
+    <string name="history_filter_date_range">Date range</string>
+    <string name="history_filter_date_any">Any date</string>
+    <string name="history_filter_date_from">From %1$s</string>
+    <string name="history_filter_date_until">Until %1$s</string>
+    <string name="history_filter_date_range_label">%1$s – %2$s</string>
+    <string name="history_filter_date_clear">Clear dates</string>
+    <string name="history_filter_amount">Amount</string>
+    <string name="history_filter_amount_min">Min amount</string>
+    <string name="history_filter_amount_max">Max amount</string>
+    <string name="history_filter_exclude_duplicates">Hide duplicates</string>
+    <string name="history_filter_apply">Apply</string>
+    <string name="history_filter_cancel">Cancel</string>
 
     <!-- Insights / reports -->
     <string name="reports_title">Insights</string>

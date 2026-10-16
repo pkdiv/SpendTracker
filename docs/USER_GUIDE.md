@@ -62,8 +62,20 @@ badge and excluded from totals.
 
 ## Activity
 
-The **Activity** tab shows your full, searchable transaction history. Filter by
-category if you want to focus on one type of spending.
+The **Activity** tab shows your full transaction history, grouped by day with
+the most recent first.
+
+- **Search** by merchant name or amount.
+- **Category chips** under the search box narrow the list to one category (tap
+  *All* to clear).
+- **Filters** opens a sheet where you can also narrow by:
+  - **Direction** — money in (credits), money out (debits), or both.
+  - **Date range** — pick a from/to range.
+  - **Amount range** — a minimum and/or maximum.
+  - **Hide duplicates** — exclude transactions the app flagged as duplicates.
+- **Clear filters** resets everything (search included). The Filters chip shows a
+  count of the active filters, and when nothing matches you'll see a
+  "No matching transactions" message.
 
 ## Insights
 

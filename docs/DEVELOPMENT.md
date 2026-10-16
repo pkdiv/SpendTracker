@@ -79,7 +79,8 @@ app/src/main/java/dev/pkdiv/spendtracker/
   ui/             SpendTrackerApp.kt          NavHost + bottom bar (hoisted nav callbacks)
                   Formatters.kt              INR formatting (Indian grouping), date labels
                   components/              stateless composables (hoisted state)
-                  home/, history/, detail/, reports/, settings/, unrecognized/,
+                  home/, detail/, reports/, settings/, unrecognized/,
+                  history/                 Activity list + HistoryFilters/HistoryFilterSheet
                   merchantcategory/        merchant -> category editor
   di/             AppModule.kt               DB + worker factory providers
                   BindingModule.kt           SmsBodyResolver binding
@@ -233,6 +234,9 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 - Each screen has a `@HiltViewModel` exposing one `StateFlow<sealed UiState>`
   (`Loading/Content/Unavailable/NotFound`-style hierarchies); all states render,
   including skeleton/empty states.
+- Activity filtering is factored into a pure `HistoryFilters` + `filterTransactions`
+  (in `ui/history`) applied in the ViewModel; the controls live in a
+  `HistoryFilterSheet` (`ModalBottomSheet`) hosting a stateless `HistoryFilterContent`.
 - Components are stateless, `Modifier` is the first optional parameter, and
   stable/immutable params are used to keep recompositions cheap.
 - `@Preview` coverage (light + dark, empty/loading/populated fakes via a
@@ -285,10 +289,11 @@ Coverage layers:
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved
   cases).
 - **ViewModels** — `TransactionDetailViewModelTest`,
-  `MerchantCategoryViewModelTest`, `FormattersTest`.
+  `MerchantCategoryViewModelTest`, `HistoryViewModelTest`, `FormattersTest`.
 - **UI** — `TransactionDetailScreenTest` (Compose, Robolectric) for the row→detail
   flow and duplicate badge; `MerchantCategoryScreenTest` for the mapping
-  add/edit/delete interactions.
+  add/edit/delete interactions; `HistoryFilterContentTest` for the Activity
+  filter controls. `HistoryFiltersTest` covers the pure filter logic.
 
 Flow/ViewModel tests await a terminal state via `first { predicate }` rather than
 Turbine's item-by-item `awaitItem()`.

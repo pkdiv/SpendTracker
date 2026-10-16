@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,15 +17,20 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -46,6 +53,8 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val filters = state.filters
+    var showFilters by remember { mutableStateOf(false) }
     val zone = remember { ZoneId.systemDefault() }
     val sections = remember(state.transactions) {
         state.transactions
@@ -62,7 +71,7 @@ fun HistoryScreen(
         )
 
         OutlinedTextField(
-            value = state.searchQuery,
+            value = filters.query,
             onValueChange = viewModel::setSearchQuery,
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,7 +79,7 @@ fun HistoryScreen(
             placeholder = { Text(stringResource(R.string.history_search_hint)) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
-                if (state.searchQuery.isNotEmpty()) {
+                if (filters.query.isNotEmpty()) {
                     IconButton(onClick = { viewModel.setSearchQuery("") }) {
                         Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.history_clear_filters))
                     }
@@ -81,22 +90,56 @@ fun HistoryScreen(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         )
 
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            FilterChip(
+                selected = filters.activeFilterCount > 0,
+                onClick = { showFilters = true },
+                label = {
+                    Text(
+                        text = if (filters.activeFilterCount > 0) {
+                            stringResource(R.string.history_filters_count, filters.activeFilterCount)
+                        } else {
+                            stringResource(R.string.history_filters)
+                        },
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Tune,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            if (filters.hasAnyCriteria) {
+                TextButton(onClick = viewModel::clearFilters) {
+                    Text(stringResource(R.string.history_clear_filters))
+                }
+            }
+        }
+
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item(key = "all") {
                 FilterChip(
-                    selected = state.selectedCategory == null,
+                    selected = filters.category == null,
                     onClick = { viewModel.setCategory(null) },
                     label = { Text(stringResource(R.string.history_filter_all)) },
                 )
             }
             items(TransactionCategory.entries, key = { it.name }) { category ->
                 FilterChip(
-                    selected = state.selectedCategory == category,
+                    selected = filters.category == category,
                     onClick = {
-                        viewModel.setCategory(if (state.selectedCategory == category) null else category)
+                        viewModel.setCategory(if (filters.category == category) null else category)
                     },
                     label = { Text(stringResource(Formatters.categoryLabelRes(category))) },
                     leadingIcon = {
@@ -111,10 +154,18 @@ fun HistoryScreen(
         }
 
         if (state.transactions.isEmpty()) {
-            EmptyState(
-                title = stringResource(R.string.history_empty),
-                message = stringResource(R.string.history_search_hint),
-            )
+            if (filters.hasAnyCriteria) {
+                EmptyState(
+                    title = stringResource(R.string.history_no_matches),
+                    message = stringResource(R.string.history_no_matches_message),
+                    icon = Icons.Filled.Tune,
+                )
+            } else {
+                EmptyState(
+                    title = stringResource(R.string.history_empty),
+                    message = stringResource(R.string.history_empty_message),
+                )
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -140,5 +191,18 @@ fun HistoryScreen(
                 }
             }
         }
+    }
+
+    if (showFilters) {
+        HistoryFilterSheet(
+            filters = filters,
+            onDirectionChange = viewModel::setDirection,
+            onDateRangeChange = viewModel::setDateRange,
+            onMinAmountChange = viewModel::setMinAmount,
+            onMaxAmountChange = viewModel::setMaxAmount,
+            onExcludeDuplicatesChange = viewModel::setExcludeDuplicates,
+            onClearFilters = viewModel::clearFilters,
+            onDismiss = { showFilters = false },
+        )
     }
 }

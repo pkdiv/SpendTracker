@@ -31,6 +31,13 @@ fun categoryIcon(category: TransactionCategory): ImageVector = when (category) {
 @Immutable
 data class CategoryColors(val container: Color, val content: Color)
 
+/**
+ * Rows without a meaningful income/expense signal — duplicates and internal (self)
+ * transfers — are rendered muted instead of using the income/expense colors.
+ */
+fun isMutedRow(category: TransactionCategory, isDuplicate: Boolean): Boolean =
+    isDuplicate || category == TransactionCategory.SELF_TRANSFER
+
 /** Restrained, M3-role-based tint for a category's icon circle. */
 @Composable
 fun categoryColors(category: TransactionCategory): CategoryColors {

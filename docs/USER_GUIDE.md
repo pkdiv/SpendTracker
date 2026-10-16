@@ -57,8 +57,9 @@ The Home tab is your dashboard:
   inbox manually.
 
 Each transaction row shows the category icon + label and the date. Money-out
-debits appear in red; credits in green; duplicates are dimmed with a *Duplicate*
-badge and excluded from totals.
+debits appear in red; credits in green. Duplicates are dimmed with a *Duplicate*
+badge and excluded from totals, and internal *Self transfer* rows are greyed out
+— they're neither income nor spend, so they carry no colour.
 
 ## Activity
 

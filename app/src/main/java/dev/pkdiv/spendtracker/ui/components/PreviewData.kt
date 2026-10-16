@@ -46,6 +46,7 @@ object PreviewData {
         transaction(4, "Airtel", "799.00", category = TransactionCategory.BILLS, daysAgo = 1),
         transaction(5, "Salary", "85000.00", direction = TransactionDirection.CREDIT, category = TransactionCategory.OTHER, daysAgo = 2),
         transaction(6, "Swiggy", "450.00", category = TransactionCategory.FOOD, daysAgo = 0, isDuplicate = true),
+        transaction(7, "Self transfer", "10000.00", category = TransactionCategory.SELF_TRANSFER, daysAgo = 1),
     )
 
     val categories: List<CategorySpend> = listOf(

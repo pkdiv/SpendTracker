@@ -59,12 +59,12 @@ fun TransactionRow(
     var showCategoryMenu by remember { mutableStateOf(false) }
     val isCredit = transaction.direction == TransactionDirection.CREDIT
     val isDuplicate = transaction.isDuplicate
-    val amountColor = if (isDuplicate) {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    } else if (isCredit) {
-        SpendTheme.colors.income
-    } else {
-        SpendTheme.colors.expense
+    val isMuted = isMutedRow(transaction.category, isDuplicate)
+    val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val amountColor = when {
+        isMuted -> mutedColor
+        isCredit -> SpendTheme.colors.income
+        else -> SpendTheme.colors.expense
     }
     val categoryColors = categoryColors(transaction.category)
     val date = remember(transaction.timestamp) {
@@ -116,11 +116,7 @@ fun TransactionRow(
                     Text(
                         text = merchantText,
                         style = MaterialTheme.typography.titleSmall,
-                        color = if (isDuplicate) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
+                        color = if (isMuted) mutedColor else MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

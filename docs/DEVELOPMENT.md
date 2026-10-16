@@ -249,6 +249,11 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 - Accessibility: ≥48dp touch targets, merged row semantics, contentDescription on
   icons, no clipping at 200% font scale.
 - INR formatted with Indian grouping; paise rendered smaller in hero amounts.
+- Rows that are neither income nor spend — duplicates and `SELF_TRANSFER` — are
+  rendered muted (`isMutedRow` in `CategoryVisuals.kt`): the amount and merchant
+  drop the income/expense colour for `onSurfaceVariant`, so self transfers read as
+  neutral grey rather than red/green. Applied in `TransactionRow` and the detail
+  hero (`SummaryHeader`).
 
 ---
 

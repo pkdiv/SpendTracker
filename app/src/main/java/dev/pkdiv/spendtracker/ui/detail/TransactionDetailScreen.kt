@@ -51,6 +51,7 @@ import dev.pkdiv.spendtracker.ui.components.OriginalMessageCard
 import dev.pkdiv.spendtracker.ui.components.SectionHeader
 import dev.pkdiv.spendtracker.ui.components.PreviewData
 import dev.pkdiv.spendtracker.ui.components.categoryColors
+import dev.pkdiv.spendtracker.ui.components.isMutedRow
 import dev.pkdiv.spendtracker.ui.theme.SpendTheme
 import dev.pkdiv.spendtracker.ui.theme.SpendTrackerTheme
 import android.content.res.Configuration
@@ -176,7 +177,12 @@ private fun DetailContent(
 @Composable
 private fun SummaryHeader(detail: TransactionDetail) {
     val isCredit = detail.direction == TransactionDirection.CREDIT
-    val amountColor = if (isCredit) SpendTheme.colors.income else SpendTheme.colors.expense
+    val isMuted = isMutedRow(detail.category, detail.isDuplicate)
+    val amountColor = when {
+        isMuted -> MaterialTheme.colorScheme.onSurfaceVariant
+        isCredit -> SpendTheme.colors.income
+        else -> SpendTheme.colors.expense
+    }
     val amountText = (if (isCredit) "+" else "−") + Formatters.formatInr(detail.amount)
 
     Column(
@@ -193,6 +199,11 @@ private fun SummaryHeader(detail: TransactionDetail) {
         Text(
             text = detail.merchant,
             style = MaterialTheme.typography.titleLarge,
+            color = if (isMuted) {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {

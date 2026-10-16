@@ -15,6 +15,11 @@
     <string name="home_total_spend">Spent this month</string>
     <string name="home_transactions_today">%1$d transactions</string>
     <string name="home_sparkline_desc">Daily spending trend this month</string>
+    <string name="home_total_spend_week">Spent this week</string>
+    <string name="home_week_last">Spent last week</string>
+    <string name="home_week_ago">Spent %1$d weeks ago</string>
+    <string name="home_week_chart_desc">Daily spending this week</string>
+    <string name="home_week_caption">%1$s · %2$s</string>
     <string name="home_chip_today">Today</string>
     <string name="home_chip_week">This week</string>
     <string name="home_chip_avg">Daily avg</string>

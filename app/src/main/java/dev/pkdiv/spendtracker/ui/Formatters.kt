@@ -7,10 +7,12 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 object Formatters {
@@ -56,6 +58,20 @@ object Formatters {
 
     /** Compact fallback date label, e.g. "12 Oct". */
     fun dateLabel(date: LocalDate): String = date.format(dateFormatter)
+
+    /** Date-range label, e.g. "14–20 Oct" or "28 Sep–4 Oct". */
+    fun dateRangeLabel(start: LocalDate, endInclusive: LocalDate): String {
+        val end = endInclusive.format(dateFormatter)
+        return if (start.year == endInclusive.year && start.month == endInclusive.month) {
+            "${start.dayOfMonth}–$end"
+        } else {
+            "${start.format(dateFormatter)}–$end"
+        }
+    }
+
+    /** Short Monday-first weekday names in the current locale, e.g. ["Mon", …, "Sun"]. */
+    fun weekdayShortLabels(): List<String> =
+        DayOfWeek.entries.map { it.getDisplayName(TextStyle.SHORT, Locale.getDefault()) }
 
     /**
      * Card title for a transaction. When the merchant couldn't be parsed it is

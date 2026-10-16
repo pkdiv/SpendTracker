@@ -42,6 +42,7 @@ import dev.pkdiv.spendtracker.ui.components.MonthSelector
 import dev.pkdiv.spendtracker.ui.components.SectionHeader
 import dev.pkdiv.spendtracker.ui.components.SyncFab
 import dev.pkdiv.spendtracker.ui.components.TransactionRow
+import dev.pkdiv.spendtracker.ui.components.WeekSpendPager
 import dev.pkdiv.spendtracker.ui.components.categoryColors
 import dev.pkdiv.spendtracker.ui.components.categoryIcon
 import java.math.BigDecimal
@@ -143,6 +144,14 @@ fun HomeScreen(
                     dailySpend = state.dailySpend,
                     dimmed = state.transactionCount == 0,
                     sparklineDescription = stringResource(R.string.home_sparkline_desc),
+                )
+            }
+
+            item(key = "week") {
+                WeekSpendPager(
+                    weeks = state.weeks,
+                    dayLabels = state.weekDayLabels,
+                    chartDescription = stringResource(R.string.home_week_chart_desc),
                 )
             }
 

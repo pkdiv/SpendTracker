@@ -77,6 +77,19 @@ object PreviewData {
         "880", "410", "0", "560", "940",
     ).map { BigDecimal(it) }
 
+    /** Per-day spend for the current week (Mon–Sun). */
+    val weekDailySpend: List<BigDecimal> = listOf(
+        "120", "340", "0", "560", "780", "430", "210",
+    ).map { BigDecimal(it) }
+
+    /** Four weeks (current first) for the swipeable Home week card. */
+    val weekSpends: List<WeekSpend> = listOf(
+        WeekSpend(0, "14–20 Oct", BigDecimal("12340.00"), 6, weekDailySpend),
+        WeekSpend(1, "7–13 Oct", BigDecimal("8420.50"), 4, listOf("210", "0", "540", "320", "0", "910", "640").map { BigDecimal(it) }),
+        WeekSpend(2, "30 Sep–6 Oct", BigDecimal("15980.00"), 8, listOf("780", "430", "210", "0", "640", "320", "0").map { BigDecimal(it) }),
+        WeekSpend(3, "23–29 Sep", BigDecimal("6710.25"), 3, listOf("0", "480", "700", "260", "880", "410", "0").map { BigDecimal(it) }),
+    )
+
     val smsDetail: TransactionDetail = TransactionDetail(
         id = 1,
         amount = BigDecimal("450.00"),

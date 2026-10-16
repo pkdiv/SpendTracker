@@ -254,6 +254,12 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   drop the income/expense colour for `onSurfaceVariant`, so self transfers read as
   neutral grey rather than red/green. Applied in `TransactionRow` and the detail
   hero (`SummaryHeader`).
+- Home shows the month hero (`HeroSpendCard`) plus a swipeable week card
+  (`WeekSpendPager`, a `HorizontalPager` with dots) paging through the last four
+  weeks, most recent first. It reads its own repository flow over that 4-week
+  window, independent of the month selector; day bucketing comes from the pure
+  `ReportAggregator.spendByDay`, and per-week totals/counts are assembled in
+  `HomeViewModel` into `WeekSpend` pages.
 
 ---
 

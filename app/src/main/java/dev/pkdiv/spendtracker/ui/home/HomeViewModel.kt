@@ -11,11 +11,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.ingestion.sms.SmsReader
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
-import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.reports.CategorySpend
 import dev.pkdiv.spendtracker.reports.ReportAggregator
 import dev.pkdiv.spendtracker.repository.TransactionRepository
 import dev.pkdiv.spendtracker.ui.Formatters
+import dev.pkdiv.spendtracker.ui.components.WeekSpend
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.DayOfWeek
@@ -57,6 +57,8 @@ data class HomeUiState(
     val dailySpend: List<BigDecimal> = emptyList(),
     val todaySpend: BigDecimal = BigDecimal.ZERO,
     val weekSpend: BigDecimal = BigDecimal.ZERO,
+    val weeks: List<WeekSpend> = emptyList(),
+    val weekDayLabels: List<String> = emptyList(),
     val dailyAverage: BigDecimal = BigDecimal.ZERO,
     val topCategories: List<CategorySpend> = emptyList(),
     val sections: List<TransactionSection> = emptyList(),
@@ -75,46 +77,58 @@ class HomeViewModel @Inject constructor(
     private val selectedMonth = MutableStateFlow(YearMonth.now())
 
     val uiState: StateFlow<HomeUiState> = selectedMonth
-        .flatMapLatest { month -> observeMonth(month) }
+        .flatMapLatest { month -> observeData(month) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
-    private fun observeMonth(month: YearMonth): kotlinx.coroutines.flow.Flow<HomeUiState> {
+    private fun observeData(month: YearMonth): kotlinx.coroutines.flow.Flow<HomeUiState> {
         val zone = ZoneOffset.systemDefault()
         val currentStart = month.atDay(1).atStartOfDay(zone).toInstant()
         val currentEnd = month.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant()
         val previousStart = month.minusMonths(1).atDay(1).atStartOfDay(zone).toInstant()
 
+        // The week card pages through the last four weeks, independent of the month selector.
+        val weekStart = weekStartOf(today)
+        val weeksWindowStart = weekStart.minusWeeks((WEEKS_SHOWN - 1).toLong()).atStartOfDay(zone).toInstant()
+        val weekEndInstant = weekStart.plusWeeks(1).atStartOfDay(zone).toInstant()
+
         return combine(
             transactionRepository.observeBetween(currentStart, currentEnd),
             transactionRepository.observeBetween(previousStart, currentStart),
-        ) { current, previous -> buildState(month, current, previous) }
+            transactionRepository.observeBetween(weeksWindowStart, weekEndInstant),
+        ) { current, previous, weeksTxns -> buildState(month, weekStart, current, previous, weeksTxns) }
     }
 
     private fun buildState(
         month: YearMonth,
+        weekStart: LocalDate,
         current: List<TransactionEntity>,
         previous: List<TransactionEntity>,
+        weeksTxns: List<TransactionEntity>,
     ): HomeUiState {
         val report = ReportAggregator.monthly(current, previous)
         val zone = ZoneId.systemDefault()
 
-        val debitsByDay: Map<LocalDate, BigDecimal> = current
-            .filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER && !it.isDuplicate }
-            .groupBy { it.timestamp.atZone(zone).toLocalDate() }
-            .mapValues { (_, txns) -> txns.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount } }
+        val debitsByDay = ReportAggregator.spendByDay(current, zone)
+        val weeksByDay = ReportAggregator.spendByDay(weeksTxns, zone)
 
         val isCurrentMonth = month == YearMonth.from(today)
         val daysElapsed = if (isCurrentMonth) today.dayOfMonth else month.lengthOfMonth()
         val dailySpend = (1..daysElapsed).map { day -> debitsByDay[month.atDay(day)] ?: BigDecimal.ZERO }
 
         val todaySpend = if (isCurrentMonth) debitsByDay[today] ?: BigDecimal.ZERO else BigDecimal.ZERO
-        val weekStart = today.minusDays((today.dayOfWeek.value - DayOfWeek.MONDAY.value).toLong())
-        val weekSpend = if (isCurrentMonth) {
-            boundaries(weekStart, today).fold(BigDecimal.ZERO) { acc, day ->
-                acc + (debitsByDay[day] ?: BigDecimal.ZERO)
-            }
-        } else {
-            BigDecimal.ZERO
+
+        val weeks = (0 until WEEKS_SHOWN).map { offset ->
+            val start = weekStart.minusWeeks(offset.toLong())
+            val days = (0..6).map { day -> weeksByDay[start.plusDays(day.toLong())] ?: BigDecimal.ZERO }
+            WeekSpend(
+                weeksAgo = offset,
+                rangeLabel = Formatters.dateRangeLabel(start, start.plusDays(6)),
+                totalSpend = days.fold(BigDecimal.ZERO) { acc, value -> acc + value },
+                transactionCount = weeksTxns.count { txn ->
+                    !txn.isDuplicate && weekStartOf(txn.timestamp.atZone(zone).toLocalDate()) == start
+                },
+                dailySpend = days,
+            )
         }
 
         val dailyAverage = if (daysElapsed > 0) {
@@ -141,7 +155,9 @@ class HomeViewModel @Inject constructor(
             transactionCount = report.transactionCount,
             dailySpend = dailySpend,
             todaySpend = todaySpend,
-            weekSpend = weekSpend,
+            weekSpend = weeks.first().totalSpend,
+            weeks = weeks,
+            weekDayLabels = Formatters.weekdayShortLabels(),
             dailyAverage = dailyAverage,
             topCategories = report.categories.take(4),
             sections = current
@@ -209,12 +225,9 @@ class HomeViewModel @Inject constructor(
     }
 }
 
-private fun boundaries(startInclusive: LocalDate, endInclusive: LocalDate): List<LocalDate> {
-    val days = mutableListOf<LocalDate>()
-    var day = startInclusive
-    while (!day.isAfter(endInclusive)) {
-        days += day
-        day = day.plusDays(1)
-    }
-    return days
-}
+/** How many weeks the Home week card pages through, current week first. */
+private const val WEEKS_SHOWN = 4
+
+/** Monday of [date]'s week. */
+private fun weekStartOf(date: LocalDate): LocalDate =
+    date.minusDays((date.dayOfWeek.value - DayOfWeek.MONDAY.value).toLong())

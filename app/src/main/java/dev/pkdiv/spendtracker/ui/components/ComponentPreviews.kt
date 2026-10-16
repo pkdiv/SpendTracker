@@ -99,6 +99,19 @@ private fun TransactionRowPreview() {
     }
 }
 
+@Preview(name = "$LightName week spend", showBackground = true)
+@Preview(name = "$DarkName week spend", showBackground = true, uiMode = NightMode)
+@Composable
+private fun WeekSpendPagerPreview() {
+    PreviewScaffold {
+        WeekSpendPager(
+            weeks = PreviewData.weekSpends,
+            dayLabels = Formatters.weekdayShortLabels(),
+            chartDescription = "Daily spending this week",
+        )
+    }
+}
+
 @Preview(name = "$LightName merchant mapping", showBackground = true)
 @Preview(name = "$DarkName merchant mapping", showBackground = true, uiMode = NightMode)
 @Composable

@@ -50,6 +50,10 @@ The Home tab is your dashboard:
 
 - A **hero card** showing total spend for the current month, the transaction
   count, and a daily-spend trend line.
+- A **"Spent this week" card** with the week's (Mon–Sun) total, a date range and
+  transaction count, and a small bar chart of daily spend. **Swipe it** to page
+  back through the last four weeks (this week, last week, then the two weeks
+  before). It always tracks the real weeks, even when you browse a past month.
 - Quick chips for **today**, **this week**, and **daily average**.
 - **Top categories** for the month (tap *See all* to jump to Insights).
 - A **recent activity** list of your transactions, newest first, grouped by date.

@@ -5,6 +5,8 @@ import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -16,13 +18,14 @@ class ReportAggregatorTest {
         category: TransactionCategory = TransactionCategory.OTHER,
         direction: TransactionDirection = TransactionDirection.DEBIT,
         isDuplicate: Boolean = false,
+        timestamp: Instant = Instant.now(),
     ) = TransactionEntity(
         amount = BigDecimal(amount),
         direction = direction,
         merchant = merchant,
         account = null,
         category = category,
-        timestamp = Instant.now(),
+        timestamp = timestamp,
         rawMessageRef = "sms:test",
         isDuplicate = isDuplicate,
     )
@@ -80,6 +83,27 @@ class ReportAggregatorTest {
         assertEquals(BigDecimal.ZERO, report.totalSpend)
         assertEquals(0, report.transactionCount)
         assertEquals(emptyList<CategorySpend>(), report.categories)
+    }
+
+    @Test
+    fun `spendByDay buckets debits by day and drops non-spend`() {
+        val zone = ZoneId.of("UTC")
+        val day1 = Instant.parse("2026-10-14T10:00:00Z")
+        val day2 = Instant.parse("2026-10-15T10:00:00Z")
+        val transactions = listOf(
+            txn("100.00", "Merchant A", TransactionCategory.FOOD, timestamp = day1),
+            txn("50.00", "Merchant B", TransactionCategory.TRANSPORT, timestamp = day1),
+            txn("999.00", "Refund", direction = TransactionDirection.CREDIT, timestamp = day1),
+            txn("500.00", "Self account", TransactionCategory.SELF_TRANSFER, timestamp = day2),
+            txn("25.00", "Duplicate", TransactionCategory.FOOD, isDuplicate = true, timestamp = day2),
+            txn("70.00", "Merchant C", TransactionCategory.SHOPPING, timestamp = day2),
+        )
+
+        val byDay = ReportAggregator.spendByDay(transactions, zone)
+
+        assertEquals(BigDecimal("150.00"), byDay[LocalDate.of(2026, 10, 14)])
+        assertEquals(BigDecimal("70.00"), byDay[LocalDate.of(2026, 10, 15)])
+        assertEquals(2, byDay.size)
     }
 
     @Test

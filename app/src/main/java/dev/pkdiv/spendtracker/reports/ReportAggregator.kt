@@ -4,11 +4,19 @@ import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
 
 object ReportAggregator {
 
     private fun List<TransactionEntity>.spend() =
         filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER && !it.isDuplicate }
+
+    /** Spend totals bucketed by calendar day, for sparklines and the week card. */
+    fun spendByDay(transactions: List<TransactionEntity>, zone: ZoneId): Map<LocalDate, BigDecimal> =
+        transactions.spend()
+            .groupBy { it.timestamp.atZone(zone).toLocalDate() }
+            .mapValues { (_, txns) -> txns.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount } }
 
     fun daily(transactions: List<TransactionEntity>): DailyReport {
         val debits = transactions.spend()

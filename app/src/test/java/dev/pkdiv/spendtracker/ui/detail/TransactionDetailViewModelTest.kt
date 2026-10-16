@@ -14,16 +14,11 @@ import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.repository.MessageUnavailableReason
 import dev.pkdiv.spendtracker.repository.TransactionRepository
+import dev.pkdiv.spendtracker.testutil.ViewModelTest
 import java.math.BigDecimal
 import java.time.Instant
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -33,20 +28,13 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowApplication
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)
-class TransactionDetailViewModelTest {
+class TransactionDetailViewModelTest : ViewModelTest() {
 
     @Before
-    fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun denySmsPermission() {
         ShadowApplication.getInstance().denyPermissions(Manifest.permission.READ_SMS)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
     }
 
     private fun entity(rawBody: String?) = TransactionEntity(
@@ -65,7 +53,7 @@ class TransactionDetailViewModelTest {
     )
 
     private fun viewModel(id: Long, repository: TransactionRepository, context: Context) =
-        TransactionDetailViewModel(SavedStateHandle(mapOf("id" to id)), repository, context)
+        track(TransactionDetailViewModel(SavedStateHandle(mapOf("id" to id)), repository, context))
 
     @Test
     fun content_whenBodyPresent() = runBlocking {

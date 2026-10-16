@@ -9,35 +9,18 @@ import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
 import dev.pkdiv.spendtracker.repository.MerchantCategoryMapping
 import dev.pkdiv.spendtracker.repository.TransactionRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import dev.pkdiv.spendtracker.testutil.ViewModelTest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)
-class MerchantCategoryViewModelTest {
-
-    @Before
-    fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
+class MerchantCategoryViewModelTest : ViewModelTest() {
 
     private fun repository(): TransactionRepository {
         val context = ApplicationProvider.getApplicationContext<Context>()
@@ -57,7 +40,7 @@ class MerchantCategoryViewModelTest {
         val repository = repository()
         repository.setMerchantCategory("Swiggy", TransactionCategory.FOOD)
 
-        val state = MerchantCategoryViewModel(repository).uiState
+        val state = track(MerchantCategoryViewModel(repository)).uiState
             .first { it is MerchantCategoryUiState.Content && it.mappings.isNotEmpty() }
 
         assertEquals(
@@ -68,7 +51,7 @@ class MerchantCategoryViewModelTest {
 
     @Test
     fun save_addsNormalizedMappingToState() = runBlocking {
-        val viewModel = MerchantCategoryViewModel(repository())
+        val viewModel = track(MerchantCategoryViewModel(repository()))
 
         viewModel.save(original = null, merchant = "Swiggy", category = TransactionCategory.FOOD)
 
@@ -79,7 +62,7 @@ class MerchantCategoryViewModelTest {
 
     @Test
     fun save_renamesKeyReplacingOldMapping() = runBlocking {
-        val viewModel = MerchantCategoryViewModel(repository())
+        val viewModel = track(MerchantCategoryViewModel(repository()))
         viewModel.save(original = null, merchant = "Swiggy", category = TransactionCategory.FOOD)
         viewModel.uiState.first { it is MerchantCategoryUiState.Content && it.mappings.isNotEmpty() }
 
@@ -97,7 +80,7 @@ class MerchantCategoryViewModelTest {
     fun delete_removesMappingFromState() = runBlocking {
         val repository = repository()
         repository.setMerchantCategory("Swiggy", TransactionCategory.FOOD)
-        val viewModel = MerchantCategoryViewModel(repository)
+        val viewModel = track(MerchantCategoryViewModel(repository))
         viewModel.uiState.first { it is MerchantCategoryUiState.Content && it.mappings.isNotEmpty() }
 
         viewModel.delete("SWIGGY")

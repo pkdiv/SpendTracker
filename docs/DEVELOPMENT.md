@@ -298,6 +298,14 @@ Coverage layers:
 Flow/ViewModel tests await a terminal state via `first { predicate }` rather than
 Turbine's item-by-item `awaitItem()`.
 
+ViewModel tests extend `ViewModelTest` (`dev.pkdiv.spendtracker.testutil`), which
+installs an unconfined test main dispatcher and, on teardown, cancels every tracked
+ViewModel's scope *before* resetting `Dispatchers.Main`. Cancelling first matters: a
+ViewModel coroutine can otherwise resume on `Dispatchers.Main` from a background
+thread after the test body and race the next test's `Dispatchers.setMain`, which
+`TestMainDispatcher` reports as a concurrent read/write `IllegalStateException`.
+Register ViewModels with `track(...)` and do not call `Dispatchers.setMain` directly.
+
 ---
 
 ## 8. Building, running, releasing

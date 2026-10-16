@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "c735c091e471059c2a0c29a7d342fb05",
+    "identityHash": "b20498572fb6931a7aff05dc570100e6",
     "entities": [
       {
         "tableName": "transactions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` TEXT NOT NULL, `direction` TEXT NOT NULL, `merchant` TEXT NOT NULL, `account` TEXT, `category` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `rawMessageRef` TEXT NOT NULL, `smsId` INTEGER, `rawSender` TEXT, `rawBody` TEXT, `source` TEXT, `sourceRef` TEXT, `rawSubject` TEXT, `receivedAt` INTEGER, `bodyTruncated` INTEGER, `isDuplicate` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amount` TEXT NOT NULL, `direction` TEXT NOT NULL, `merchant` TEXT NOT NULL, `account` TEXT, `category` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `rawMessageRef` TEXT NOT NULL, `smsId` INTEGER, `rawSender` TEXT, `rawBody` TEXT, `source` TEXT, `sourceRef` TEXT, `rawSubject` TEXT, `receivedAt` INTEGER, `bodyTruncated` INTEGER, `isDuplicate` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -108,7 +108,8 @@
             "fieldPath": "isDuplicate",
             "columnName": "isDuplicate",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -126,6 +127,15 @@
             ],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_transactions_rawMessageRef` ON `${TABLE_NAME}` (`rawMessageRef`)"
+          },
+          {
+            "name": "index_transactions_receivedAt",
+            "unique": false,
+            "columnNames": [
+              "receivedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transactions_receivedAt` ON `${TABLE_NAME}` (`receivedAt`)"
           }
         ],
         "foreignKeys": []
@@ -220,7 +230,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c735c091e471059c2a0c29a7d342fb05')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b20498572fb6931a7aff05dc570100e6')"
     ]
   }
 }

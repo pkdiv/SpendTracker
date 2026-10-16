@@ -1,5 +1,6 @@
 package dev.pkdiv.spendtracker.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -10,7 +11,10 @@ import java.time.Instant
 
 @Entity(
     tableName = "transactions",
-    indices = [Index(value = ["rawMessageRef"], unique = true)],
+    indices = [
+        Index(value = ["rawMessageRef"], unique = true),
+        Index(value = ["receivedAt"], name = "index_transactions_receivedAt"),
+    ],
 )
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -30,5 +34,6 @@ data class TransactionEntity(
     val rawSubject: String? = null,
     val receivedAt: Long? = null,
     val bodyTruncated: Boolean? = null,
+    @ColumnInfo(defaultValue = "0")
     val isDuplicate: Boolean = false,
 )

@@ -122,6 +122,11 @@
     <string name="unrecognized_empty">You\'re all caught up</string>
     <string name="unrecognized_empty_message">Every message was recognized as a transaction.</string>
     <string name="action_recognize">Dismiss</string>
+    <string name="unrecognized_clear_all">Clear all</string>
+    <string name="unrecognized_clear_title">Clear all alerts?</string>
+    <string name="unrecognized_clear_message">This permanently removes all alerts. This can\'t be undone.</string>
+    <string name="unrecognized_clear_confirm">Clear</string>
+    <string name="unrecognized_clear_cancel">Cancel</string>
 
     <!-- Transaction detail -->
     <string name="detail_title">Transaction</string>

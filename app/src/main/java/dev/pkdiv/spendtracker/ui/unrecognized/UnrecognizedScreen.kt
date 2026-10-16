@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,13 +43,40 @@ import java.time.ZoneId
 @Composable
 fun UnrecognizedScreen(viewModel: UnrecognizedViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    UnrecognizedContent(
+        state = state,
+        onDismiss = viewModel::dismiss,
+        onClearAll = viewModel::clearAll,
+    )
+}
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.unrecognized_title),
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        )
+@Composable
+fun UnrecognizedContent(
+    state: UnrecognizedUiState,
+    onDismiss: (Long) -> Unit,
+    onClearAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var showClearConfirm by remember { mutableStateOf(false) }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.unrecognized_title),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f),
+            )
+            if (state.messages.isNotEmpty()) {
+                TextButton(onClick = { showClearConfirm = true }) {
+                    Text(stringResource(R.string.unrecognized_clear_all))
+                }
+            }
+        }
 
         if (state.messages.isEmpty()) {
             EmptyState(
@@ -64,11 +94,34 @@ fun UnrecognizedScreen(viewModel: UnrecognizedViewModel = hiltViewModel()) {
                 items(state.messages, key = { it.id }) { message ->
                     AlertCard(
                         message = message,
-                        onDismiss = { viewModel.dismiss(message.id) },
+                        onDismiss = { onDismiss(message.id) },
                     )
                 }
             }
         }
+    }
+
+    if (showClearConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirm = false },
+            title = { Text(stringResource(R.string.unrecognized_clear_title)) },
+            text = { Text(stringResource(R.string.unrecognized_clear_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showClearConfirm = false
+                        onClearAll()
+                    },
+                ) {
+                    Text(stringResource(R.string.unrecognized_clear_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirm = false }) {
+                    Text(stringResource(R.string.unrecognized_clear_cancel))
+                }
+            },
+        )
     }
 }
 

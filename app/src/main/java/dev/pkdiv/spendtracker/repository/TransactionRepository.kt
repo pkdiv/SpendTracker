@@ -120,6 +120,8 @@ class TransactionRepository @Inject constructor(
 
     suspend fun deleteUnrecognized(id: Long) = unrecognizedMessageDao.delete(id)
 
+    suspend fun clearUnrecognized() = unrecognizedMessageDao.clear()
+
     suspend fun updateCategory(id: Long, category: TransactionCategory) =
         transactionDao.updateCategory(id, category)
 

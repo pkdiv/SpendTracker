@@ -89,8 +89,10 @@ The **Insights** tab holds the monthly report:
 ## Alerts
 
 The **Alerts** tab collects transaction messages the app couldn't understand
-(yet). Tap **Dismiss** once you've checked one, or leave it for later review.
-New unrecognized messages appear here with a badge count on the tab.
+(yet). Tap **Dismiss** on one you've checked, or use **Clear all** in the header
+to remove every alert at once (you'll be asked to confirm). Leaving an alert
+queued is fine — new unrecognized messages appear here with a badge count on the
+tab.
 
 ## Working with a transaction
 

@@ -289,11 +289,13 @@ Coverage layers:
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved
   cases).
 - **ViewModels** — `TransactionDetailViewModelTest`,
-  `MerchantCategoryViewModelTest`, `HistoryViewModelTest`, `FormattersTest`.
+  `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
+  `UnrecognizedViewModelTest`, `FormattersTest`.
 - **UI** — `TransactionDetailScreenTest` (Compose, Robolectric) for the row→detail
   flow and duplicate badge; `MerchantCategoryScreenTest` for the mapping
   add/edit/delete interactions; `HistoryFilterContentTest` for the Activity
-  filter controls. `HistoryFiltersTest` covers the pure filter logic.
+  filter controls; `UnrecognizedContentTest` for the Alerts clear-all flow.
+  `HistoryFiltersTest` covers the pure filter logic.
 
 Flow/ViewModel tests await a terminal state via `first { predicate }` rather than
 Turbine's item-by-item `awaitItem()`.

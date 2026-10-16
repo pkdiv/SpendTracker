@@ -29,4 +29,8 @@ class UnrecognizedViewModel @Inject constructor(
     fun dismiss(id: Long) {
         viewModelScope.launch { transactionRepository.deleteUnrecognized(id) }
     }
+
+    fun clearAll() {
+        viewModelScope.launch { transactionRepository.clearUnrecognized() }
+    }
 }

@@ -1,6 +1,7 @@
 package dev.pkdiv.spendtracker.repository
 
 import dev.pkdiv.spendtracker.data.db.DuplicateDetector
+import dev.pkdiv.spendtracker.data.db.MerchantCategoryDao
 import dev.pkdiv.spendtracker.data.db.TransactionDao
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.data.db.TransactionSource
@@ -9,6 +10,7 @@ import dev.pkdiv.spendtracker.data.db.UnrecognizedMessageEntity
 import dev.pkdiv.spendtracker.ingestion.email.EmailMessage
 import dev.pkdiv.spendtracker.parsing.ParsedTransaction
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
+import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
 import dev.pkdiv.spendtracker.util.Privacy
 import java.time.Instant
 import javax.inject.Inject
@@ -20,6 +22,8 @@ import kotlinx.coroutines.flow.map
 class TransactionRepository @Inject constructor(
     private val transactionDao: TransactionDao,
     private val unrecognizedMessageDao: UnrecognizedMessageDao,
+    private val merchantCategoryDao: MerchantCategoryDao,
+    private val categorizer: TransactionCategorizer,
 ) {
     fun observeAll(): Flow<List<TransactionEntity>> = transactionDao.observeAll()
 
@@ -47,7 +51,7 @@ class TransactionRepository @Inject constructor(
                 direction = parsed.direction,
                 merchant = parsed.merchant,
                 account = parsed.account,
-                category = parsed.category,
+                category = resolveCategory(parsed.merchant, parsed.category),
                 timestamp = parsed.timestamp ?: Instant.ofEpochMilli(receivedAtMillis),
                 rawMessageRef = parsed.rawMessageRef,
                 smsId = smsId,
@@ -77,7 +81,7 @@ class TransactionRepository @Inject constructor(
                 direction = parsed.direction,
                 merchant = parsed.merchant,
                 account = parsed.account,
-                category = parsed.category,
+                category = resolveCategory(parsed.merchant, parsed.category),
                 timestamp = parsed.timestamp ?: Instant.ofEpochMilli(email.receivedAtMillis),
                 rawMessageRef = parsed.rawMessageRef,
                 rawSender = email.sender,
@@ -119,6 +123,13 @@ class TransactionRepository @Inject constructor(
 
     suspend fun setDuplicate(id: Long, isDuplicate: Boolean) =
         transactionDao.setDuplicate(id, isDuplicate)
+
+    private suspend fun resolveCategory(merchant: String, fallback: TransactionCategory): TransactionCategory {
+        merchantCategoryDao.categoryFor(merchant.trim())
+            ?.let { value -> TransactionCategory.entries.firstOrNull { it.name == value } }
+            ?.let { return it }
+        return categorizer.categorize(merchant).takeUnless { it == TransactionCategory.OTHER } ?: fallback
+    }
 
     private fun TransactionEntity.toDetail() = TransactionDetail(
         id = id,

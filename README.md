@@ -82,7 +82,7 @@ Matched messages become `ParseResult.Parsed`. Unmatched messages become `ParseRe
 
 ## Current status
 
-The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization still defaults to `OTHER`; the merchant→category mapping table exists but is not yet wired into the parser.
+The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization is wired in: a transaction is categorized from the user-editable `merchant_categories` table when an exact merchant match exists, otherwise by a built-in keyword-based default categorizer, and finally falls back to `OTHER`.
 
 ## Releases
 

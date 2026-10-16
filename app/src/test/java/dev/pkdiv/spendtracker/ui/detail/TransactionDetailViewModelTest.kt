@@ -10,6 +10,7 @@ import dev.pkdiv.spendtracker.data.db.SpendTrackerDatabase
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.data.db.TransactionSource
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
+import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.repository.MessageUnavailableReason
 import dev.pkdiv.spendtracker.repository.TransactionRepository
@@ -74,7 +75,7 @@ class TransactionDetailViewModelTest {
             .build()
         val dao = db.transactionDao()
         val id = dao.insert(entity(rawBody = "Rs.100 debited"))
-        val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
 
         val content = viewModel(id, repository, context).uiState
             .first { it is DetailUiState.Content } as DetailUiState.Content
@@ -88,7 +89,7 @@ class TransactionDetailViewModelTest {
         val db = Room.inMemoryDatabaseBuilder(context, SpendTrackerDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        val repository = TransactionRepository(db.transactionDao(), db.unrecognizedMessageDao())
+        val repository = TransactionRepository(db.transactionDao(), db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
 
         val state = viewModel(999L, repository, context).uiState
             .first { it == DetailUiState.NotFound }
@@ -104,7 +105,7 @@ class TransactionDetailViewModelTest {
             .build()
         val dao = db.transactionDao()
         val id = dao.insert(entity(rawBody = null))
-        val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
 
         val unavailable = viewModel(id, repository, context).uiState
             .first { it is DetailUiState.Unavailable } as DetailUiState.Unavailable
@@ -120,7 +121,7 @@ class TransactionDetailViewModelTest {
             .build()
         val dao = db.transactionDao()
         val id = dao.insert(entity(rawBody = "Rs.100 debited"))
-        val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
         val vm = viewModel(id, repository, context)
 
         vm.setDuplicate(true)
@@ -140,7 +141,7 @@ class TransactionDetailViewModelTest {
             .build()
         val dao = db.transactionDao()
         val id = dao.insert(entity(rawBody = null))
-        val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
 
         val unavailable = viewModel(id, repository, context).uiState
             .first { it is DetailUiState.Unavailable } as DetailUiState.Unavailable

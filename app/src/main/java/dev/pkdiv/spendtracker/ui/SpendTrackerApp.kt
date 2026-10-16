@@ -45,6 +45,7 @@ import dev.pkdiv.spendtracker.R
 import dev.pkdiv.spendtracker.ui.detail.TransactionDetailScreen
 import dev.pkdiv.spendtracker.ui.history.HistoryScreen
 import dev.pkdiv.spendtracker.ui.home.HomeScreen
+import dev.pkdiv.spendtracker.ui.merchantcategory.MerchantCategoryScreen
 import dev.pkdiv.spendtracker.ui.reports.ReportsScreen
 import dev.pkdiv.spendtracker.ui.settings.SettingsScreen
 import dev.pkdiv.spendtracker.ui.unrecognized.UnrecognizedScreen
@@ -54,6 +55,7 @@ private const val ROUTE_HISTORY = "history"
 private const val ROUTE_REPORTS = "reports"
 private const val ROUTE_ALERTS = "unrecognized"
 private const val ROUTE_SETTINGS = "settings"
+private const val ROUTE_MERCHANT_CATEGORIES = "merchant_categories"
 
 private data class Destination(
     val route: String,
@@ -140,7 +142,14 @@ fun SpendTrackerApp() {
             }
             composable(ROUTE_REPORTS) { ReportsScreen() }
             composable(ROUTE_ALERTS) { UnrecognizedScreen() }
-            composable(ROUTE_SETTINGS) { SettingsScreen() }
+            composable(ROUTE_SETTINGS) {
+                SettingsScreen(
+                    onNavigateToMerchantCategories = { navController.navigate(ROUTE_MERCHANT_CATEGORIES) },
+                )
+            }
+            composable(ROUTE_MERCHANT_CATEGORIES) {
+                MerchantCategoryScreen(onBack = { navController.popBackStack() })
+            }
             composable(
                 route = "transaction/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType }),

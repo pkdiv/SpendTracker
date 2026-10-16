@@ -50,7 +50,7 @@ Priority tiers:
     by id cursor. Only `OTHER` rows are candidates, so manually edited rows are
     untouched. Covered by `TransactionRepositoryCategorizationTest`.
 
-- [ ] **Merchant → category editor UI**
+- [x] **Merchant → category editor UI**
   - The `merchant_categories` table and `categoryFor()` DAO exist and are
     consulted on insert, but there is no way to populate it. Build an editable
     list (add/edit/delete merchant → category) surfaced from **Settings** or
@@ -59,6 +59,15 @@ Priority tiers:
     exact-match `categoryFor` is reliable.
   - Acceptance: Compose UI test editing a mapping then re-classifying a
     transaction through the repository.
+  - Done: `MerchantCategoryScreen`/`MerchantCategoryViewModel` (Settings →
+    *Merchant categories*), with a stateless `MerchantCategoryRow`. Writes go
+    through `TransactionRepository.setMerchantCategory`/`deleteMerchantCategory`,
+    which normalize keys via `MerchantKey.normalize` (trim + uppercase); the
+    `categoryFor` lookup is case-insensitive so existing/directly-written keys
+    still resolve. Editing a mapping then re-classifying is covered by
+    `MerchantCategoryRepositoryTest`, the ViewModel by
+    `MerchantCategoryViewModelTest`, and the editor interactions by
+    `MerchantCategoryScreenTest` (Compose, `src/testDebug`).
 
 
 ## P1 — High (strong value, within charter)
@@ -184,5 +193,4 @@ From `AGENTS.md` §9 and repo taste:
 ---
 
 Last verified against the codebase on 2026-10-16. Re-evaluate priority tiers as
-the `merchant_categories` UI and email ingestion land, since both unlock
-follow-on items.
+email ingestion lands, since it unlocks follow-on items.

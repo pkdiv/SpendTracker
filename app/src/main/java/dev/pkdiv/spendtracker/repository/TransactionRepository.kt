@@ -2,6 +2,7 @@ package dev.pkdiv.spendtracker.repository
 
 import dev.pkdiv.spendtracker.data.db.DuplicateDetector
 import dev.pkdiv.spendtracker.data.db.MerchantCategoryDao
+import dev.pkdiv.spendtracker.data.db.MerchantCategoryEntity
 import dev.pkdiv.spendtracker.data.db.TransactionDao
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.data.db.TransactionSource
@@ -11,6 +12,7 @@ import dev.pkdiv.spendtracker.ingestion.email.EmailMessage
 import dev.pkdiv.spendtracker.parsing.ParsedTransaction
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
+import dev.pkdiv.spendtracker.util.MerchantKey
 import dev.pkdiv.spendtracker.util.Privacy
 import java.time.Instant
 import javax.inject.Inject
@@ -124,6 +126,32 @@ class TransactionRepository @Inject constructor(
     suspend fun setDuplicate(id: Long, isDuplicate: Boolean) =
         transactionDao.setDuplicate(id, isDuplicate)
 
+    /** User-taught merchant -> category overrides, ready for the editor UI. */
+    fun observeMerchantCategories(): Flow<List<MerchantCategoryMapping>> =
+        merchantCategoryDao.observeAll().map { rows ->
+            rows.map { row ->
+                MerchantCategoryMapping(
+                    merchant = row.merchant,
+                    category = TransactionCategory.entries.firstOrNull { it.name == row.category }
+                        ?: TransactionCategory.OTHER,
+                )
+            }
+        }
+
+    /**
+     * Teaches the app that [merchant] belongs to [category]. The merchant key is
+     * normalized so the exact-match lookup at categorization time is reliable.
+     * A blank merchant is ignored.
+     */
+    suspend fun setMerchantCategory(merchant: String, category: TransactionCategory) {
+        val key = MerchantKey.normalize(merchant)
+        if (key.isEmpty()) return
+        merchantCategoryDao.upsert(MerchantCategoryEntity(merchant = key, category = category.name))
+    }
+
+    suspend fun deleteMerchantCategory(merchant: String) =
+        merchantCategoryDao.delete(MerchantKey.normalize(merchant))
+
     /**
      * Idempotent, resumable backfill for rows left as [TransactionCategory.OTHER] before
      * categorization was wired on insert. Walks candidates in id order in batches and
@@ -153,7 +181,7 @@ class TransactionRepository @Inject constructor(
     }
 
     private suspend fun resolveCategory(merchant: String, fallback: TransactionCategory): TransactionCategory {
-        merchantCategoryDao.categoryFor(merchant.trim())
+        merchantCategoryDao.categoryFor(MerchantKey.normalize(merchant))
             ?.let { value -> TransactionCategory.entries.firstOrNull { it.name == value } }
             ?.let { return it }
         return categorizer.categorize(merchant).takeUnless { it == TransactionCategory.OTHER } ?: fallback

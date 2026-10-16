@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
@@ -37,7 +39,10 @@ import dev.pkdiv.spendtracker.R
 import dev.pkdiv.spendtracker.ui.components.SectionHeader
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onNavigateToMerchantCategories: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -73,6 +78,23 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                         onCheckedChange = { viewModel.setNotificationsEnabled(it) },
                     )
                 },
+            )
+        }
+
+        SectionHeader(title = stringResource(R.string.settings_section_categories))
+        SettingsGroup {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_merchant_categories)) },
+                supportingContent = { Text(stringResource(R.string.settings_merchant_categories_hint)) },
+                leadingContent = { SettingIcon(Icons.Filled.Category) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable { onNavigateToMerchantCategories() },
             )
         }
 

@@ -99,6 +99,22 @@ private fun TransactionRowPreview() {
     }
 }
 
+@Preview(name = "$LightName merchant mapping", showBackground = true)
+@Preview(name = "$DarkName merchant mapping", showBackground = true, uiMode = NightMode)
+@Composable
+private fun MerchantCategoryRowPreview() {
+    PreviewScaffold {
+        PreviewData.merchantMappings.forEach { mapping ->
+            MerchantCategoryRow(
+                merchant = mapping.merchant,
+                category = mapping.category,
+                onClick = {},
+                onDelete = {},
+            )
+        }
+    }
+}
+
 @Preview(name = "$LightName sparkline", showBackground = true)
 @Preview(name = "$DarkName sparkline", showBackground = true, uiMode = NightMode)
 @Composable

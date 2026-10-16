@@ -6,6 +6,7 @@ import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.reports.CategorySpend
 import dev.pkdiv.spendtracker.reports.MerchantSpend
+import dev.pkdiv.spendtracker.repository.MerchantCategoryMapping
 import dev.pkdiv.spendtracker.repository.TransactionDetail
 import java.math.BigDecimal
 import java.time.Instant
@@ -58,6 +59,14 @@ object PreviewData {
         MerchantSpend("Amazon", BigDecimal("3100.00")),
         MerchantSpend("Swiggy", BigDecimal("2400.00")),
         MerchantSpend("Uber", BigDecimal("1850.00")),
+    )
+
+    val merchantMappings: List<MerchantCategoryMapping> = listOf(
+        MerchantCategoryMapping("SWIGGY", TransactionCategory.FOOD),
+        MerchantCategoryMapping("UBER", TransactionCategory.TRANSPORT),
+        MerchantCategoryMapping("AMAZON", TransactionCategory.SHOPPING),
+        MerchantCategoryMapping("AIRTEL", TransactionCategory.BILLS),
+        MerchantCategoryMapping("NETFLIX", TransactionCategory.ENTERTAINMENT),
     )
 
     /** Per-day spend for a sparkline (₹ values as plain strings). */

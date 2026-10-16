@@ -66,6 +66,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   EmailProcessor.kt          parse + persist for a single email
   repository/     TransactionRepository.kt  single write path (dedup + categorize + persist)
                   TransactionDetail.kt      UI-ready detail model + MessageUnavailableReason
+                  MerchantCategoryMapping.kt UI-ready merchant -> category override
   reports/        ReportGenerator.kt        loads rows for a day/month
                   ReportAggregator.kt       pure aggregation (totals, top, by-category)
                   ReportModels.kt           DailyReport / MonthlyReport / CategorySpend / MerchantSpend
@@ -78,11 +79,13 @@ app/src/main/java/dev/pkdiv/spendtracker/
   ui/             SpendTrackerApp.kt          NavHost + bottom bar (hoisted nav callbacks)
                   Formatters.kt              INR formatting (Indian grouping), date labels
                   components/              stateless composables (hoisted state)
-                  home/, history/, detail/, reports/, settings/, unrecognized/
+                  home/, history/, detail/, reports/, settings/, unrecognized/,
+                  merchantcategory/        merchant -> category editor
   di/             AppModule.kt               DB + worker factory providers
                   BindingModule.kt           SmsBodyResolver binding
   util/           HtmlToText.kt               strip HTML for email bodies
                   Privacy.kt                 cap bodies + mask OTP codes
+                  MerchantKey.kt             canonical merchant key (trim + uppercase)
   MainActivity.kt, MainViewModel.kt        permissions + trigger backfill
   SpendTrackerApp.kt (root)  Application, Hilt, WorkManager config + schedule on launch
 ```
@@ -161,8 +164,9 @@ survive.
 On **insert**, `TransactionRepository.resolveCategory(merchant, fallback)` decides
 the category:
 
-1. `MerchantCategoryDao.categoryFor(merchant)` — exact match against the
-   user-editable table (highest precedence, future in-app UI target).
+1. `MerchantCategoryDao.categoryFor(merchant)` — user-editable table, looked up
+   by the normalized key (trim + uppercase, `MerchantKey.normalize`) with a
+   case-insensitive match (highest precedence).
 2. `TransactionCategorizer.categorize(merchant)` — ordered, case-insensitive
    keyword rules (built-in defaults).
 3. Otherwise `ParsedTransaction.category` (currently `OTHER`).
@@ -171,6 +175,14 @@ the category:
 (`"PRIME VIDEO"`/`"AMAZON PRIME"` before generic `"AMAZON"`; grocery apps
 before generic `"MART"`; self-transfer phrases first). Adding a merchant to the
 user table overrides the defaults without code changes.
+
+**Editing the table.** **Settings → Merchant categories** opens
+`MerchantCategoryScreen` (with `MerchantCategoryViewModel`) to add, edit and
+delete overrides. Writes go through
+`TransactionRepository.setMerchantCategory` / `deleteMerchantCategory`, which
+normalize the merchant key, so a mapping applies to both future inserts and the
+backfill resolver. Renaming a row's merchant deletes the old key (the merchant
+is the primary key).
 
 **Retroactive categorization.** Rows stored before categorization was wired keep
 `OTHER` until `TransactionRepository.recategorizeOtherTransactions()` runs (via
@@ -214,7 +226,8 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 ## 5. UI / Compose conventions
 
 - Single-activity, bottom-bar navigation: **Home**, **Activity**,
-  **Insights**, **Alerts**, **Settings**. A `transaction/{id}` detail route.
+  **Insights**, **Alerts**, **Settings**. Non-tab routes: `transaction/{id}`
+  (detail) and `merchant_categories` (reached from Settings).
 - Bottom-bar and click callbacks are **hoisted** to `SpendTrackerApp` (the NavHost);
   row composables take callbacks `(Long) -> Unit` and never reference ViewModels.
 - Each screen has a `@HiltViewModel` exposing one `StateFlow<sealed UiState>`
@@ -262,15 +275,20 @@ Coverage layers:
   and the `OTHER` fallback; `TransactionRepositoryCategorizationTest` covers the
   retroactive backfill (reclassifies `OTHER`, leaves non-`OTHER` and user
   overrides alone, idempotent across batches).
+  `MerchantCategoryRepositoryTest` covers the editor's data path (normalized
+  writes, upsert/delete, re-classifying a transaction) and `MerchantKeyTest` the
+  pure key normalization.
 - **Data** — `Migration5To6Test`, `Migration6To7Test` (row survival);
   `DuplicateDetectorTest`.
 - **Reports** — `ReportAggregatorTest`.
 - **Privacy** — `NoRawBodyLoggingTest`, `PrivacyTest`, `HtmlToTextTest`.
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved
   cases).
-- **ViewModels** — `TransactionDetailViewModelTest`, `FormattersTest`.
+- **ViewModels** — `TransactionDetailViewModelTest`,
+  `MerchantCategoryViewModelTest`, `FormattersTest`.
 - **UI** — `TransactionDetailScreenTest` (Compose, Robolectric) for the row→detail
-  flow and duplicate badge.
+  flow and duplicate badge; `MerchantCategoryScreenTest` for the mapping
+  add/edit/delete interactions.
 
 Flow/ViewModel tests await a terminal state via `first { predicate }` rather than
 Turbine's item-by-item `awaitItem()`.
@@ -310,9 +328,6 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
 
 - **Email ingestion** is stubbed (`GmailClient` returns `emptyList`); no OAuth,
   no sync worker, IMAP fallback not started.
-- **Merchant→category UI** — the `merchant_categories` table exists and is
-  consulted on insert, but there is no in-app screen to edit it; the built-in
-  keyword categorizer (`TransactionCategorizer`) provides defaults until then.
 - **Teach-a-rule** flow (regex builder / manual tagging) for the Unrecognized
   queue is not implemented.
 - `versionName` is static (`0.1.0`); tags drive releases and do not auto-sync

@@ -102,15 +102,28 @@ In Settings you can:
 - **End-of-day report time** — default is 11:00 PM. Move it earlier/later to
   control when the daily summary notification fires.
 - **End-of-day notifications** — toggle the daily summary notification on/off.
+- **Merchant categories** — teach the app which category a merchant belongs to
+  (see *How categorization works*).
 - Review the status of **SMS access** and **notifications** permissions.
+
+## Merchant categories
+
+**Settings › Merchant categories** is where you teach the app how to categorize a
+merchant. Tap **Add mapping**, enter the merchant name (e.g. *Swiggy*) and pick a
+category, and confirm. Tap any existing row to change its category or rename the
+merchant; use the trash icon to remove a mapping.
+
+Your mappings are matched by merchant name (case and surrounding spaces are
+ignored) and take priority over the built-in defaults. They apply to new
+transactions as they arrive and to past ones the app re-scans; transactions you
+have already re-categorized by hand are left untouched.
 
 ## How categorization works
 
 Spend Tracker categorizes each transaction automatically:
 
-1. **Your custom mappings** — if you've taught it that a specific merchant maps to
-   a category, that wins. *(An in-app editor for this is planned; for now the
-   built-in defaults apply.)*
+1. **Your custom mappings** — if you've taught the app that a specific merchant
+   maps to a category (see *Merchant categories* above), that wins.
 2. **Built-in defaults** — a keyword-based categorizer recognizes common Indian
    merchants and assigns *Food, Transport, Shopping, Bills, Entertainment,
    Health*. For example: Swiggy/Zomato → Food, Uber/Ola/IRCTC → Transport,

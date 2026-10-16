@@ -18,6 +18,7 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 - **Bank-specific rules** — HDFC, ICICI, SBI, and generic UPI are supported today
 - **Local-first storage** — Room for transactions, DataStore for settings
 - **Unrecognized queue** — messages that don't match a rule are surfaced in-app instead of silently dropped
+- **Editable merchant → category mapping** — teach the app which category a merchant belongs to from Settings; your overrides win over the built-in defaults
 - **End-of-day report** — local notification with total spend and transaction count at a configurable time
 - **End-of-month report** — total, category breakdown, top merchants, and previous-month comparison
 - **Minimal permissions** — only SMS read/receive, notifications, and internet (reserved for future email fetch)
@@ -88,7 +89,7 @@ Matched messages become `ParseResult.Parsed`. Unmatched messages become `ParseRe
 
 ## Current status
 
-The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization is wired in: a transaction is categorized from the user-editable `merchant_categories` table when an exact merchant match exists, otherwise by a built-in keyword-based default categorizer, and finally falls back to `OTHER`. Rows stored before categorization existed are re-categorized automatically by a one-shot backfill on app start (only `OTHER` rows are touched, so manual corrections are never overwritten).
+The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization is wired in: a transaction is categorized from the user-editable `merchant_categories` table when an exact merchant match exists, otherwise by a built-in keyword-based default categorizer, and finally falls back to `OTHER`. You can teach the app a merchant's category from **Settings › Merchant categories** — entries are stored with a normalized key so matching is reliable. Rows stored before categorization existed are re-categorized automatically by a one-shot backfill on app start (only `OTHER` rows are touched, so manual corrections are never overwritten).
 
 ## Releases
 

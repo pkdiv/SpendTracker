@@ -60,10 +60,13 @@
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_reports">Reports</string>
+    <string name="settings_section_categories">Categories</string>
     <string name="settings_section_permissions">Permissions</string>
     <string name="settings_eod_time">End-of-day report time</string>
     <string name="settings_notifications">End-of-day notifications</string>
     <string name="settings_notifications_hint">Get a daily summary notification</string>
+    <string name="settings_merchant_categories">Merchant categories</string>
+    <string name="settings_merchant_categories_hint">Teach the app how to categorize a merchant</string>
     <string name="settings_sms_permission">SMS access</string>
     <string name="settings_notification_permission">Notifications</string>
     <string name="settings_permission_granted">Granted</string>
@@ -71,6 +74,21 @@
     <string name="settings_time_pick">Pick a time</string>
     <string name="settings_time_confirm">OK</string>
     <string name="settings_time_cancel">Cancel</string>
+
+    <!-- Merchant -> category mappings -->
+    <string name="merchant_categories_title">Merchant categories</string>
+    <string name="merchant_categories_back">Back</string>
+    <string name="merchant_categories_add">Add mapping</string>
+    <string name="merchant_categories_add_title">Add mapping</string>
+    <string name="merchant_categories_edit_title">Edit mapping</string>
+    <string name="merchant_categories_merchant_label">Merchant</string>
+    <string name="merchant_categories_merchant_hint">e.g. Swiggy</string>
+    <string name="merchant_categories_category_label">Category</string>
+    <string name="merchant_categories_save">Save</string>
+    <string name="merchant_categories_cancel">Cancel</string>
+    <string name="merchant_categories_delete">Remove %1$s</string>
+    <string name="merchant_categories_empty_title">No merchant rules yet</string>
+    <string name="merchant_categories_empty_message">Teach the app which category a merchant belongs to. New transactions from that merchant are categorized automatically.</string>
 
     <!-- Alerts / unrecognized -->
     <string name="unrecognized_title">Alerts</string>

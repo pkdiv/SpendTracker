@@ -147,7 +147,7 @@ class Migration6To7Test {
         }
 
         val room = Room.databaseBuilder(context, SpendTrackerDatabase::class.java, dbName)
-            .addMigrations(SpendTrackerDatabase.MIGRATION_6_7)
+            .addMigrations(SpendTrackerDatabase.MIGRATION_6_7, SpendTrackerDatabase.MIGRATION_7_8)
             .allowMainThreadQueries()
             .build()
 

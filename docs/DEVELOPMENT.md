@@ -41,7 +41,7 @@ from backup.
 ```
 app/src/main/java/dev/pkdiv/spendtracker/
   data/           SettingsStore.kt          Preferences DataStore + AppSettings
-  data/db/        SpendTrackerDatabase.kt   Room DB (v7) + migrations + TypeConverters
+  data/db/        SpendTrackerDatabase.kt   Room DB (v8) + migrations + TypeConverters
                   TransactionEntity / DAO    transactions table
                   UnrecognizedMessageEntity / DAO
                   MerchantCategoryEntity / DAO   merchant -> category override table
@@ -141,7 +141,7 @@ parses dates/timestamps from several Indian formats. Pure and unit-tested.
 
 ## 4. Data layer
 
-### Room schema (`SpendTrackerDatabase`, version 7)
+### Room schema (`SpendTrackerDatabase`, version 8)
 
 Three tables, all with exported JSON schemas under `app/schemas/` and
 migrations shipped as `Migration` objects (no destructive fallbacks):
@@ -151,14 +151,19 @@ migrations shipped as `Migration` objects (no destructive fallbacks):
   receivedAt, bodyTruncated, isDuplicate. Unique index on `rawMessageRef`;
   index on `receivedAt`.
 - `unrecognized_messages` — sender, body, receivedAt, smsId, rawMessageRef
-  (unique).
+  (unique), dismissed. Alerts are **soft-dismissed** (`dismissed = 1`) rather
+  than deleted: the row stays so the unique `rawMessageRef` index stops the SMS
+  backfill from re-inserting a message the user already cleared. Because the live
+  `SmsReceiver` and the `SmsReader` backfill derive different `rawMessageRef`s for
+  the same SMS, `insertUnrecognized` also skips a message whose
+  sender + receivedAt + body is already known (dismissed or not).
 - `merchant_categories` — `merchant` (PK) → `category`. User-editable override.
 
 Migrations: `MIGRATION_1_2` (dedup), `_2_3` (smsId), `_3_4` (raw columns),
 `_4_5` (drop rows missing raw columns), `_5_6` (message source metadata),
-`_6_7` (duplicate flag + timestamp index). Every migration has a verification
-test (see `Migration5To6Test`, `Migration6To7Test`) asserting old-schema rows
-survive.
+`_6_7` (duplicate flag + timestamp index), `_7_8` (alert soft-dismiss flag).
+Every migration has a verification test (see `Migration6To7Test`,
+`Migration7To8Test`) asserting old-schema rows survive.
 
 ### Categorization
 
@@ -282,8 +287,8 @@ Coverage layers:
   `MerchantCategoryRepositoryTest` covers the editor's data path (normalized
   writes, upsert/delete, re-classifying a transaction) and `MerchantKeyTest` the
   pure key normalization.
-- **Data** — `Migration5To6Test`, `Migration6To7Test` (row survival);
-  `DuplicateDetectorTest`.
+- **Data** — `Migration5To6Test`, `Migration6To7Test`, `Migration7To8Test`
+  (row survival); `DuplicateDetectorTest`.
 - **Reports** — `ReportAggregatorTest`.
 - **Privacy** — `NoRawBodyLoggingTest`, `PrivacyTest`, `HtmlToTextTest`.
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved

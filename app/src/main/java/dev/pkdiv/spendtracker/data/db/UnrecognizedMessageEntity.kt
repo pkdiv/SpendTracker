@@ -1,5 +1,6 @@
 package dev.pkdiv.spendtracker.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -16,4 +17,8 @@ data class UnrecognizedMessageEntity(
     val rawMessageRef: String,
     val receivedAt: Instant,
     val smsId: Long? = null,
+    // Soft-delete marker: kept (never physically removed) so the rawMessageRef unique
+    // index still blocks the SMS backfill from re-inserting a dismissed message.
+    @ColumnInfo(defaultValue = "0")
+    val dismissed: Boolean = false,
 )

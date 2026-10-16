@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -82,6 +82,17 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN isDuplicate INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_receivedAt ON transactions (receivedAt)")
+            }
+        }
+
+        /**
+         * Adds soft-delete for dismissed alerts. Non-destructive: dismissed defaults to
+         * false, and rows are kept so the rawMessageRef unique index still prevents the
+         * SMS backfill from re-inserting a message the user already dismissed.
+         */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE unrecognized_messages ADD COLUMN dismissed INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

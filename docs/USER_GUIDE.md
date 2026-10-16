@@ -90,9 +90,10 @@ The **Insights** tab holds the monthly report:
 
 The **Alerts** tab collects transaction messages the app couldn't understand
 (yet). Tap **Dismiss** on one you've checked, or use **Clear all** in the header
-to remove every alert at once (you'll be asked to confirm). Leaving an alert
-queued is fine — new unrecognized messages appear here with a badge count on the
-tab.
+to remove every alert at once (you'll be asked to confirm). Dismissed and cleared
+alerts stay gone — the app remembers them, so re-scanning your inbox won't bring
+them back. Leaving an alert queued is fine — new unrecognized messages appear
+here with a badge count on the tab.
 
 ## Working with a transaction
 

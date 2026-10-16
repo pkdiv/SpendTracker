@@ -65,4 +65,26 @@ class UnrecognizedViewModelTest : ViewModelTest() {
         assertEquals("ref:2", state.messages.single().rawMessageRef)
         db.close()
     }
+
+    @Test
+    fun clearedAlerts_stayHiddenWhenBackfillReinsertsThem() = runBlocking {
+        val (db, repository) = openRepository()
+        repository.insertUnrecognized("HDFCBK", "Rs.100 debited", "sms:1", 1700000000000)
+        assertEquals(1, repository.observeUnrecognized().first().size)
+
+        repository.dismissAllUnrecognized()
+
+        // Re-running the SMS backfill re-reads the same message under both ref formats
+        // (the live receiver's and the reader's). Neither may resurface it.
+        repository.insertUnrecognized("HDFCBK", "Rs.100 debited", "sms:1", 1700000000000)
+        repository.insertUnrecognized(
+            "HDFCBK",
+            "Rs.100 debited",
+            "sms:1700000000000:${"Rs.100 debited".hashCode()}",
+            1700000000000,
+        )
+
+        assertEquals(emptyList<UnrecognizedMessageEntity>(), repository.observeUnrecognized().first())
+        db.close()
+    }
 }

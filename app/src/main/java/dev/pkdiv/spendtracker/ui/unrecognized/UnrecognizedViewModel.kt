@@ -27,10 +27,10 @@ class UnrecognizedViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UnrecognizedUiState())
 
     fun dismiss(id: Long) {
-        viewModelScope.launch { transactionRepository.deleteUnrecognized(id) }
+        viewModelScope.launch { transactionRepository.dismissUnrecognized(id) }
     }
 
     fun clearAll() {
-        viewModelScope.launch { transactionRepository.clearUnrecognized() }
+        viewModelScope.launch { transactionRepository.dismissAllUnrecognized() }
     }
 }

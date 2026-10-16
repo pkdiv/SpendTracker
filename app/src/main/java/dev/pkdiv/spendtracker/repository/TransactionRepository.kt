@@ -104,6 +104,10 @@ class TransactionRepository @Inject constructor(
         receivedAtMillis: Long,
         smsId: Long? = null,
     ) {
+        // The live receiver and the backfill reader derive rawMessageRef differently, so
+        // the same SMS would otherwise be stored twice under two refs. Checking by content
+        // also means a message the user dismissed is never re-surfaced by the backfill.
+        if (unrecognizedMessageDao.countForContent(sender, receivedAtMillis, body) > 0) return
         unrecognizedMessageDao.insert(
             UnrecognizedMessageEntity(
                 sender = sender,
@@ -118,9 +122,9 @@ class TransactionRepository @Inject constructor(
     fun observeUnrecognized(): Flow<List<UnrecognizedMessageEntity>> =
         unrecognizedMessageDao.observeAll()
 
-    suspend fun deleteUnrecognized(id: Long) = unrecognizedMessageDao.delete(id)
+    suspend fun dismissUnrecognized(id: Long) = unrecognizedMessageDao.dismiss(id)
 
-    suspend fun clearUnrecognized() = unrecognizedMessageDao.clear()
+    suspend fun dismissAllUnrecognized() = unrecognizedMessageDao.dismissAll()
 
     suspend fun updateCategory(id: Long, category: TransactionCategory) =
         transactionDao.updateCategory(id, category)

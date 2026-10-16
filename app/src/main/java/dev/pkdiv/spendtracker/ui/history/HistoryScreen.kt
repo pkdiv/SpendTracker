@@ -132,6 +132,9 @@ fun HistoryScreen(
                             onCategoryChange = { category ->
                                 viewModel.updateCategory(transaction.id, category)
                             },
+                            onToggleDuplicate = { id, isDuplicate ->
+                                viewModel.setDuplicate(id, isDuplicate)
+                            },
                         )
                     }
                 }

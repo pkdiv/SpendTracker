@@ -24,6 +24,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -108,6 +109,25 @@ class TransactionDetailViewModelTest {
         val unavailable = viewModel(id, repository, context).uiState
             .first { it is DetailUiState.Unavailable } as DetailUiState.Unavailable
         assertEquals(MessageUnavailableReason.PERMISSION_REVOKED, unavailable.reason)
+        db.close()
+    }
+
+    @Test
+    fun setDuplicate_trueFlagsTransactionAndReemitsDetail() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val db = Room.inMemoryDatabaseBuilder(context, SpendTrackerDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        val dao = db.transactionDao()
+        val id = dao.insert(entity(rawBody = "Rs.100 debited"))
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao())
+        val vm = viewModel(id, repository, context)
+
+        vm.setDuplicate(true)
+
+        val content = vm.uiState
+            .first { it is DetailUiState.Content && it.detail.isDuplicate } as DetailUiState.Content
+        assertTrue(content.detail.isDuplicate)
         db.close()
     }
 

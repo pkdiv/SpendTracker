@@ -27,4 +27,5 @@ data class TransactionDetail(
     val receivedAt: Instant,
     val body: String?,
     val bodyTruncated: Boolean,
+    val isDuplicate: Boolean,
 )

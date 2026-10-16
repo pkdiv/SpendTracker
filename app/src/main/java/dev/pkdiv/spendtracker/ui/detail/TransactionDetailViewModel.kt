@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 sealed interface DetailUiState {
     data object Loading : DetailUiState
@@ -45,6 +46,10 @@ class TransactionDetailViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DetailUiState.Loading)
+
+    fun setDuplicate(isDuplicate: Boolean) {
+        viewModelScope.launch { transactionRepository.setDuplicate(transactionId, isDuplicate) }
+    }
 
     private fun unavailableReason(source: TransactionSource): MessageUnavailableReason {
         if (source == TransactionSource.SMS) {

@@ -30,4 +30,5 @@ data class TransactionEntity(
     val rawSubject: String? = null,
     val receivedAt: Long? = null,
     val bodyTruncated: Boolean? = null,
+    val isDuplicate: Boolean = false,
 )

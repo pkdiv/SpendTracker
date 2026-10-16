@@ -1,5 +1,6 @@
 package dev.pkdiv.spendtracker.repository
 
+import dev.pkdiv.spendtracker.data.db.DuplicateDetector
 import dev.pkdiv.spendtracker.data.db.TransactionDao
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.data.db.TransactionSource
@@ -40,7 +41,7 @@ class TransactionRepository @Inject constructor(
         rawSubject: String? = null,
         bodyTruncated: Boolean = false,
     ) {
-        val inserted = transactionDao.insert(
+        val inserted = transactionDao.insertDeduplicated(
             TransactionEntity(
                 amount = parsed.amount,
                 direction = parsed.direction,
@@ -57,7 +58,8 @@ class TransactionRepository @Inject constructor(
                 rawSubject = rawSubject,
                 receivedAt = receivedAtMillis,
                 bodyTruncated = bodyTruncated,
-            )
+            ),
+            DuplicateDetector.WINDOW_MILLIS,
         )
         if (inserted == -1L && rawSender != null && rawBody != null) {
             transactionDao.updateRawMessage(parsed.rawMessageRef, rawSender, rawBody)
@@ -115,6 +117,9 @@ class TransactionRepository @Inject constructor(
     suspend fun updateCategory(id: Long, category: TransactionCategory) =
         transactionDao.updateCategory(id, category)
 
+    suspend fun setDuplicate(id: Long, isDuplicate: Boolean) =
+        transactionDao.setDuplicate(id, isDuplicate)
+
     private fun TransactionEntity.toDetail() = TransactionDetail(
         id = id,
         amount = amount,
@@ -130,5 +135,6 @@ class TransactionRepository @Inject constructor(
         receivedAt = receivedAt?.let(Instant::ofEpochMilli) ?: timestamp,
         body = rawBody,
         bodyTruncated = bodyTruncated ?: false,
+        isDuplicate = isDuplicate,
     )
 }

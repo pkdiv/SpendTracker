@@ -93,6 +93,7 @@ private fun TransactionRowPreview() {
                 transaction = transaction,
                 onTransactionClick = {},
                 onCategoryChange = {},
+                onToggleDuplicate = { _, _ -> },
             )
         }
     }

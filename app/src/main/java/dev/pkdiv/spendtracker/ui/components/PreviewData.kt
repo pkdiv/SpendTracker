@@ -23,6 +23,7 @@ object PreviewData {
         direction: TransactionDirection = TransactionDirection.DEBIT,
         category: TransactionCategory = TransactionCategory.FOOD,
         daysAgo: Long = 0,
+        isDuplicate: Boolean = false,
     ) = TransactionEntity(
         id = id,
         amount = BigDecimal(amount),
@@ -34,6 +35,7 @@ object PreviewData {
         rawMessageRef = "ref-$id",
         rawSender = "HDFCBK",
         rawBody = "Rs.$amount debited from A/c ••1234 to $merchant",
+        isDuplicate = isDuplicate,
     )
 
     val transactions: List<TransactionEntity> = listOf(
@@ -42,6 +44,7 @@ object PreviewData {
         transaction(3, "Amazon", "2340.00", category = TransactionCategory.SHOPPING, daysAgo = 1),
         transaction(4, "Airtel", "799.00", category = TransactionCategory.BILLS, daysAgo = 1),
         transaction(5, "Salary", "85000.00", direction = TransactionDirection.CREDIT, category = TransactionCategory.OTHER, daysAgo = 2),
+        transaction(6, "Swiggy", "450.00", category = TransactionCategory.FOOD, daysAgo = 0, isDuplicate = true),
     )
 
     val categories: List<CategorySpend> = listOf(
@@ -79,6 +82,7 @@ object PreviewData {
         receivedAt = now,
         body = "Rs.450 debited from A/c **1234 to Swiggy on 10-10-2026. Avl bal Rs.12,340.00. OTP is 123456.",
         bodyTruncated = false,
+        isDuplicate = false,
     )
 
     val emailDetail: TransactionDetail = TransactionDetail(
@@ -100,5 +104,6 @@ object PreviewData {
             }
         }.trim(),
         bodyTruncated = false,
+        isDuplicate = false,
     )
 }

@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -71,6 +71,17 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
                 db.execSQL("UPDATE transactions SET source = 'SMS' WHERE source IS NULL")
                 db.execSQL("UPDATE transactions SET receivedAt = timestamp WHERE receivedAt IS NULL")
                 db.execSQL("UPDATE transactions SET sourceRef = CAST(smsId AS TEXT) WHERE sourceRef IS NULL AND smsId IS NOT NULL")
+            }
+        }
+
+        /**
+         * Adds duplicate detection. Non-destructive: existing rows default to
+         * non-duplicate, and the receivedAt index supports the windowed lookup.
+         */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN isDuplicate INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_transactions_receivedAt ON transactions (receivedAt)")
             }
         }
     }

@@ -80,7 +80,9 @@ fun TransactionDetailScreen(
                     }
                 },
                 actions = {
-                    val body = (state as? DetailUiState.Content)?.detail?.body
+                    val detail = (state as? DetailUiState.Content)?.detail
+                        ?: (state as? DetailUiState.Unavailable)?.detail
+                    val body = detail?.body
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
@@ -97,6 +99,24 @@ fun TransactionDetailScreen(
                             onClick = {
                                 menuExpanded = false
                                 body?.let { clipboard.setText(AnnotatedString(it)) }
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(
+                                        if (detail?.isDuplicate == true) {
+                                            R.string.action_unmark_duplicate
+                                        } else {
+                                            R.string.action_mark_duplicate
+                                        },
+                                    ),
+                                )
+                            },
+                            enabled = detail != null,
+                            onClick = {
+                                menuExpanded = false
+                                detail?.let { viewModel.setDuplicate(!it.isDuplicate) }
                             },
                         )
                     }
@@ -177,6 +197,10 @@ private fun SummaryHeader(detail: TransactionDetail) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             CategoryChip(detail.category)
+            if (detail.isDuplicate) {
+                Spacer(modifier = Modifier.width(8.dp))
+                DuplicateChip()
+            }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = Formatters.dateTimeLabel(detail.timestamp),
@@ -198,6 +222,21 @@ private fun CategoryChip(category: TransactionCategory) {
             text = stringResource(Formatters.categoryLabelRes(category)),
             style = MaterialTheme.typography.labelMedium,
             color = colors.content,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun DuplicateChip() {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Text(
+            text = stringResource(R.string.duplicate_badge),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         )
     }

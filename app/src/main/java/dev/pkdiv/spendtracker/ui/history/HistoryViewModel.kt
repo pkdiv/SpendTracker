@@ -58,4 +58,8 @@ class HistoryViewModel @Inject constructor(
     fun updateCategory(id: Long, category: TransactionCategory) {
         viewModelScope.launch { transactionRepository.updateCategory(id, category) }
     }
+
+    fun setDuplicate(id: Long, isDuplicate: Boolean) {
+        viewModelScope.launch { transactionRepository.setDuplicate(id, isDuplicate) }
+    }
 }

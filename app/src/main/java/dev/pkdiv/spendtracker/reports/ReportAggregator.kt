@@ -8,13 +8,13 @@ import java.math.BigDecimal
 object ReportAggregator {
 
     private fun List<TransactionEntity>.spend() =
-        filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER }
+        filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER && !it.isDuplicate }
 
     fun daily(transactions: List<TransactionEntity>): DailyReport {
         val debits = transactions.spend()
         return DailyReport(
             totalSpend = debits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
-            transactionCount = transactions.size,
+            transactionCount = transactions.count { !it.isDuplicate },
             top = topMerchants(debits, 3),
             categories = byCategory(debits),
         )
@@ -25,7 +25,7 @@ object ReportAggregator {
         val prevDebits = previousTransactions.spend()
         return MonthlyReport(
             totalSpend = debits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
-            transactionCount = transactions.size,
+            transactionCount = transactions.count { !it.isDuplicate },
             categories = byCategory(debits),
             topMerchants = topMerchants(debits, 5),
             previousMonthTotal = prevDebits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },

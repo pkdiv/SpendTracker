@@ -15,7 +15,7 @@ A native Android app that:
 
 ## 2. Current status
 
-- **Implemented:** SMS → parse → store → report flow, covered by unit tests. Supported rule sets: HDFC, ICICI, SBI, generic UPI.
+- **Implemented:** SMS → parse → store → report flow, covered by unit tests. Supported rule sets: HDFC, ICICI, SBI, generic UPI. Near-duplicate SMS (same sender + amount + direction + merchant within 2 minutes) are auto-flagged as duplicates; transactions can also be manually marked/unmarked as duplicate, and duplicates are excluded from totals/reports.
 - **Scaffolded, not functional:** email ingestion. `GmailClient` returns an empty list; there is no OAuth flow and no email sync worker. IMAP fallback is not started.
 - **Not wired:** categorization. The merchant→category mapping table exists but is not connected to the parser; all transactions currently default to `OTHER`.
 - **Unrecognized queue:** messages are surfaced in-app. The "teach a new rule" flow (regex builder / manual tagging) is not implemented.

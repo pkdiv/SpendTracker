@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,11 +53,19 @@ fun TransactionRow(
     transaction: TransactionEntity,
     onTransactionClick: (Long) -> Unit,
     onCategoryChange: (TransactionCategory) -> Unit,
+    onToggleDuplicate: (Long, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showCategoryMenu by remember { mutableStateOf(false) }
     val isCredit = transaction.direction == TransactionDirection.CREDIT
-    val amountColor = if (isCredit) SpendTheme.colors.income else SpendTheme.colors.expense
+    val isDuplicate = transaction.isDuplicate
+    val amountColor = if (isDuplicate) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else if (isCredit) {
+        SpendTheme.colors.income
+    } else {
+        SpendTheme.colors.expense
+    }
     val categoryColors = categoryColors(transaction.category)
     val date = remember(transaction.timestamp) {
         transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate()
@@ -107,6 +116,11 @@ fun TransactionRow(
                     Text(
                         text = merchantText,
                         style = MaterialTheme.typography.titleSmall,
+                        color = if (isDuplicate) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -127,6 +141,14 @@ fun TransactionRow(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        if (isDuplicate) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = stringResource(R.string.duplicate_badge),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
 
@@ -146,7 +168,7 @@ fun TransactionRow(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.MoreVert,
-                        contentDescription = stringResource(R.string.detail_change_category),
+                        contentDescription = stringResource(R.string.detail_more),
                     )
                 }
                 DropdownMenu(
@@ -162,6 +184,20 @@ fun TransactionRow(
                             },
                         )
                     }
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (isDuplicate) R.string.action_unmark_duplicate else R.string.action_mark_duplicate,
+                                ),
+                            )
+                        },
+                        onClick = {
+                            showCategoryMenu = false
+                            onToggleDuplicate(transaction.id, !isDuplicate)
+                        },
+                    )
                 }
             }
         }

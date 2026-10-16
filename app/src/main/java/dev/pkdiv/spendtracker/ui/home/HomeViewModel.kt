@@ -99,7 +99,7 @@ class HomeViewModel @Inject constructor(
         val zone = ZoneId.systemDefault()
 
         val debitsByDay: Map<LocalDate, BigDecimal> = current
-            .filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER }
+            .filter { it.direction == TransactionDirection.DEBIT && it.category != TransactionCategory.SELF_TRANSFER && !it.isDuplicate }
             .groupBy { it.timestamp.atZone(zone).toLocalDate() }
             .mapValues { (_, txns) -> txns.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount } }
 
@@ -145,6 +145,7 @@ class HomeViewModel @Inject constructor(
             dailyAverage = dailyAverage,
             topCategories = report.categories.take(4),
             sections = current
+                .filter { !it.isDuplicate }
                 .groupBy { it.timestamp.atZone(zone).toLocalDate() }
                 .toList()
                 .sortedByDescending { (date, _) -> date }
@@ -170,6 +171,10 @@ class HomeViewModel @Inject constructor(
 
     fun updateCategory(id: Long, category: TransactionCategory) {
         viewModelScope.launch { transactionRepository.updateCategory(id, category) }
+    }
+
+    fun setDuplicate(id: Long, isDuplicate: Boolean) {
+        viewModelScope.launch { transactionRepository.setDuplicate(id, isDuplicate) }
     }
 
     private val _rescanState = MutableStateFlow<RescanState>(RescanState.Idle)

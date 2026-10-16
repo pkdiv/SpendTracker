@@ -15,6 +15,7 @@ class ReportAggregatorTest {
         merchant: String,
         category: TransactionCategory = TransactionCategory.OTHER,
         direction: TransactionDirection = TransactionDirection.DEBIT,
+        isDuplicate: Boolean = false,
     ) = TransactionEntity(
         amount = BigDecimal(amount),
         direction = direction,
@@ -23,6 +24,7 @@ class ReportAggregatorTest {
         category = category,
         timestamp = Instant.now(),
         rawMessageRef = "sms:test",
+        isDuplicate = isDuplicate,
     )
 
     @Test
@@ -78,5 +80,21 @@ class ReportAggregatorTest {
         assertEquals(BigDecimal.ZERO, report.totalSpend)
         assertEquals(0, report.transactionCount)
         assertEquals(emptyList<CategorySpend>(), report.categories)
+    }
+
+    @Test
+    fun `duplicate transactions are excluded from totals and counts`() {
+        val transactions = listOf(
+            txn("100.00", "Merchant A", TransactionCategory.FOOD),
+            txn("100.00", "Merchant A", TransactionCategory.FOOD, isDuplicate = true),
+            txn("50.00", "Merchant B", TransactionCategory.TRANSPORT),
+        )
+
+        val report = ReportAggregator.daily(transactions)
+
+        assertEquals(BigDecimal("150.00"), report.totalSpend)
+        assertEquals(2, report.transactionCount)
+        assertEquals(2, report.categories.size)
+        assertEquals(BigDecimal("100.00"), report.top.first().total)
     }
 }

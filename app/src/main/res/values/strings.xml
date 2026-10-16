@@ -84,6 +84,9 @@
     <string name="detail_more">More options</string>
     <string name="detail_copy_message">Copy message</string>
     <string name="detail_change_category">Change category</string>
+    <string name="action_mark_duplicate">Mark as duplicate</string>
+    <string name="action_unmark_duplicate">Remove duplicate mark</string>
+    <string name="duplicate_badge">Duplicate</string>
     <string name="detail_original_message">Original message</string>
     <string name="detail_account">Account / card</string>
     <string name="detail_reference">Reference ID</string>

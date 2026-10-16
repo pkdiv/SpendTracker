@@ -37,6 +37,7 @@ class TransactionDetailScreenTest {
                         transaction = PreviewData.transactions.first(),
                         onTransactionClick = { selectedId.value = it },
                         onCategoryChange = {},
+                        onToggleDuplicate = { _, _ -> },
                     )
                 } else {
                     OriginalMessageCard(detail = PreviewData.smsDetail)
@@ -46,5 +47,21 @@ class TransactionDetailScreenTest {
 
         compose.onNodeWithText("Swiggy").performClick()
         compose.onNodeWithText("Rs.450 debited", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun duplicateRow_showsDuplicateBadge() {
+        compose.setContent {
+            SpendTrackerTheme {
+                TransactionRow(
+                    transaction = PreviewData.transactions.first { it.isDuplicate },
+                    onTransactionClick = {},
+                    onCategoryChange = {},
+                    onToggleDuplicate = { _, _ -> },
+                )
+            }
+        }
+
+        compose.onNodeWithText("Duplicate").assertIsDisplayed()
     }
 }

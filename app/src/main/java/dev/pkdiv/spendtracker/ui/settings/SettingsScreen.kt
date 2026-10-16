@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
@@ -109,6 +110,21 @@ fun SettingsScreen(
                 icon = Icons.Filled.Notifications,
                 title = stringResource(R.string.settings_notification_permission),
                 granted = state.notificationPermissionGranted,
+            )
+        }
+
+        SectionHeader(title = stringResource(R.string.settings_section_about))
+        SettingsGroup {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_app_version)) },
+                leadingContent = { SettingIcon(Icons.Filled.Info) },
+                trailingContent = {
+                    Text(
+                        text = state.appVersion ?: stringResource(R.string.settings_app_version_unknown),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
             )
         }
     }

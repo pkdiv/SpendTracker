@@ -22,6 +22,7 @@ data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val smsPermissionGranted: Boolean = false,
     val notificationPermissionGranted: Boolean = false,
+    val appVersion: String? = null,
 )
 
 @HiltViewModel
@@ -29,6 +30,8 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsStore: SettingsStore,
 ) : ViewModel() {
+
+    private val appVersion: String? = resolveAppVersion()
 
     val uiState: StateFlow<SettingsUiState> = settingsStore.settings
         .map { settings ->
@@ -41,9 +44,22 @@ class SettingsViewModel @Inject constructor(
                     ContextCompat.checkSelfPermission(
                         context, Manifest.permission.POST_NOTIFICATIONS,
                     ) == PackageManager.PERMISSION_GRANTED,
+                appVersion = appVersion,
             )
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            SettingsUiState(appVersion = appVersion),
+        )
+
+    /** The app's `versionName` from the manifest, or null if the package can't be read. */
+    @Suppress("DEPRECATION")
+    private fun resolveAppVersion(): String? = try {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    } catch (error: PackageManager.NameNotFoundException) {
+        null
+    }
 
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch { settingsStore.setNotificationsEnabled(enabled) }

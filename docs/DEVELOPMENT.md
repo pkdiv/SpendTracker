@@ -336,4 +336,5 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
 - **Teach-a-rule** flow (regex builder / manual tagging) for the Unrecognized
   queue is not implemented.
 - `versionName` is static (`0.1.0`); tags drive releases and do not auto-sync
-  into the manifest version.
+  into the manifest version. Settings › **About** shows whatever `versionName`
+  the build produced (read from the package manager, `BuildConfig` is off).

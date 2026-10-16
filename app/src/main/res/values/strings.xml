@@ -86,6 +86,9 @@
     <string name="settings_section_reports">Reports</string>
     <string name="settings_section_categories">Categories</string>
     <string name="settings_section_permissions">Permissions</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_app_version">App version</string>
+    <string name="settings_app_version_unknown">—</string>
     <string name="settings_eod_time">End-of-day report time</string>
     <string name="settings_notifications">End-of-day notifications</string>
     <string name="settings_notifications_hint">Get a daily summary notification</string>

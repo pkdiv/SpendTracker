@@ -117,6 +117,7 @@ In Settings you can:
 - **Merchant categories** — teach the app which category a merchant belongs to
   (see *How categorization works*).
 - Review the status of **SMS access** and **notifications** permissions.
+- See the installed **app version** under **About** at the bottom of the screen.
 
 ## Merchant categories
 

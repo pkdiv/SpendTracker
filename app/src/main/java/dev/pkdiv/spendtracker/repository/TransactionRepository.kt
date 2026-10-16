@@ -124,6 +124,34 @@ class TransactionRepository @Inject constructor(
     suspend fun setDuplicate(id: Long, isDuplicate: Boolean) =
         transactionDao.setDuplicate(id, isDuplicate)
 
+    /**
+     * Idempotent, resumable backfill for rows left as [TransactionCategory.OTHER] before
+     * categorization was wired on insert. Walks candidates in id order in batches and
+     * resolves each through the same precedence as insert ([resolveCategory]).
+     *
+     * Only rows currently in [TransactionCategory.OTHER] are considered, so a transaction
+     * the user has since re-categorized is never re-touched. Rows the resolver can't place
+     * stay [TransactionCategory.OTHER] and are left alone, making a re-run a no-op.
+     *
+     * @return the number of rows whose category was changed.
+     */
+    suspend fun recategorizeOtherTransactions(batchSize: Int = DEFAULT_BATCH_SIZE): Int {
+        var afterId = 0L
+        var updated = 0
+        while (true) {
+            val batch = transactionDao.otherCategoryTransactions(afterId, batchSize)
+            if (batch.isEmpty()) return updated
+            batch.forEach { transaction ->
+                val resolved = resolveCategory(transaction.merchant, transaction.category)
+                if (resolved != transaction.category) {
+                    transactionDao.updateCategory(transaction.id, resolved)
+                    updated++
+                }
+            }
+            afterId = batch.last().id
+        }
+    }
+
     private suspend fun resolveCategory(merchant: String, fallback: TransactionCategory): TransactionCategory {
         merchantCategoryDao.categoryFor(merchant.trim())
             ?.let { value -> TransactionCategory.entries.firstOrNull { it.name == value } }
@@ -148,4 +176,8 @@ class TransactionRepository @Inject constructor(
         bodyTruncated = bodyTruncated ?: false,
         isDuplicate = isDuplicate,
     )
+
+    companion object {
+        const val DEFAULT_BATCH_SIZE = 100
+    }
 }

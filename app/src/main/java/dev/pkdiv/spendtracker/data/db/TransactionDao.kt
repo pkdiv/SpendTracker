@@ -37,6 +37,16 @@ interface TransactionDao {
     @Query("UPDATE transactions SET category = :category WHERE id = :id")
     suspend fun updateCategory(id: Long, category: TransactionCategory)
 
+    @Query(
+        """
+        SELECT * FROM transactions
+        WHERE category = 'OTHER' AND id > :afterId
+        ORDER BY id ASC
+        LIMIT :limit
+        """,
+    )
+    suspend fun otherCategoryTransactions(afterId: Long, limit: Int): List<TransactionEntity>
+
     @Query("UPDATE transactions SET rawSender = :sender, rawBody = :body WHERE rawMessageRef = :rawMessageRef")
     suspend fun updateRawMessage(rawMessageRef: String, sender: String, body: String)
 

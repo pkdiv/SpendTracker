@@ -36,7 +36,7 @@ Priority tiers:
   - Acceptance: unit test `EmailProcessor` over a fake `EmailClient`; the
     `parse → insertEmail` path already has a seam to test against.
 
-- [ ] **Retroactively categorize existing transactions**
+- [x] **Retroactively categorize existing transactions**
   - All rows inserted before categorization was wired are stuck as `OTHER`.
     Add an idempotent backfill (a `OneTimeWorkRequest` or an in-DB update) that
     resolves `OTHER` rows using the same `resolveCategory` precedence
@@ -45,6 +45,10 @@ Priority tiers:
     since.
   - Acceptance: a migration-style or worker test proving `OTHER` rows are
     reclassified and non-`OTHER` rows are left alone.
+  - Done: `BackfillCategoriesWorker` (one-shot, `KEEP`) →
+    `TransactionRepository.recategorizeOtherTransactions()` walking `OTHER` rows
+    by id cursor. Only `OTHER` rows are candidates, so manually edited rows are
+    untouched. Covered by `TransactionRepositoryCategorizationTest`.
 
 - [ ] **Merchant → category editor UI**
   - The `merchant_categories` table and `categoryFor()` DAO exist and are

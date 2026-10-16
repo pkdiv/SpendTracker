@@ -74,6 +74,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   ReportScheduler.kt          schedules the two periodic workers
                   RawMessageBackfill.kt       fills in bodies missing from transactions
                   BackfillRawMessagesWorker.kt Hilt worker wrapper around backfill
+                  BackfillCategoriesWorker.kt  one-shot re-categorize of `OTHER` rows
   ui/             SpendTrackerApp.kt          NavHost + bottom bar (hoisted nav callbacks)
                   Formatters.kt              INR formatting (Indian grouping), date labels
                   components/              stateless composables (hoisted state)
@@ -169,9 +170,17 @@ the category:
 `TransactionCategorizer` is a pure class with an ordered keyword list
 (`"PRIME VIDEO"`/`"AMAZON PRIME"` before generic `"AMAZON"`; grocery apps
 before generic `"MART"`; self-transfer phrases first). Adding a merchant to the
-user table overrides the defaults without code changes. Existing stored rows are
-not retroactively re-categorized; a re-scan/re-parse is required (tracked as a
-future backfill concern).
+user table overrides the defaults without code changes.
+
+**Retroactive categorization.** Rows stored before categorization was wired keep
+`OTHER` until `TransactionRepository.recategorizeOtherTransactions()` runs (via
+`BackfillCategoriesWorker`, scheduled once with a `KEEP` policy on app start). It
+walks `OTHER` rows in id order in batches via
+`TransactionDao.otherCategoryTransactions(afterId, limit)` and resolves each with
+the *same* `resolveCategory` precedence, so it is idempotent (a second run updates
+nothing) and resumable (already-reclassified rows are no longer `OTHER`). Only
+`OTHER` rows are candidates, so a transaction the user manually re-categorized is
+never re-touched; rows the resolver can't place stay `OTHER`.
 
 ### Reports
 
@@ -193,6 +202,9 @@ Both are unit-tested over synthetic entity lists.
 - `BackfillRawMessagesWorker` — one-shot, `KEEP` policy, gated on
   `READ_SMS`; `RawMessageBackfill` iteratively resolves pending rows in batches
   and stops when a batch resolves nothing (so unresolvable rows don't loop).
+- `BackfillCategoriesWorker` — one-shot, `KEEP` policy; re-categorizes `OTHER`
+  rows once through `recategorizeOtherTransactions()`. No permission needed and
+  it is a no-op once every resolvable row has a category.
 
 WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 `Configuration.Provider`.
@@ -247,7 +259,9 @@ Coverage layers:
 - **Parsing rules** — each rule (`Hdfc/Upi/...` `RuleTest`) with real anonymized
   samples; `ParserEngineTest` covers routing + unrecognized fallback.
 - **Categorization** — `TransactionCategorizerTest` covers specificity ordering
-  and the `OTHER` fallback.
+  and the `OTHER` fallback; `TransactionRepositoryCategorizationTest` covers the
+  retroactive backfill (reclassifies `OTHER`, leaves non-`OTHER` and user
+  overrides alone, idempotent across batches).
 - **Data** — `Migration5To6Test`, `Migration6To7Test` (row survival);
   `DuplicateDetectorTest`.
 - **Reports** — `ReportAggregatorTest`.
@@ -301,7 +315,5 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
   keyword categorizer (`TransactionCategorizer`) provides defaults until then.
 - **Teach-a-rule** flow (regex builder / manual tagging) for the Unrecognized
   queue is not implemented.
-- Existing transactions stored before categorization was wired keep `OTHER`
-  until re-parsed.
 - `versionName` is static (`0.1.0`); tags drive releases and do not auto-sync
   into the manifest version.

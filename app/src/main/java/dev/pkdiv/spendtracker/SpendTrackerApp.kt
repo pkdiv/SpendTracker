@@ -7,6 +7,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import dev.pkdiv.spendtracker.work.BackfillCategoriesWorker
 import dev.pkdiv.spendtracker.work.BackfillRawMessagesWorker
 import dev.pkdiv.spendtracker.work.ReportScheduler
 import javax.inject.Inject
@@ -30,12 +31,22 @@ class SpendTrackerApp : Application(), Configuration.Provider {
         reportScheduler.scheduleEod()
         reportScheduler.scheduleEom()
         scheduleRawMessageBackfill()
+        scheduleCategoryBackfill()
     }
 
     private fun scheduleRawMessageBackfill() {
         val request = OneTimeWorkRequestBuilder<BackfillRawMessagesWorker>().build()
         workManager.enqueueUniqueWork(
             BackfillRawMessagesWorker.UNIQUE_WORK,
+            ExistingWorkPolicy.KEEP,
+            request,
+        )
+    }
+
+    private fun scheduleCategoryBackfill() {
+        val request = OneTimeWorkRequestBuilder<BackfillCategoriesWorker>().build()
+        workManager.enqueueUniqueWork(
+            BackfillCategoriesWorker.UNIQUE_WORK,
             ExistingWorkPolicy.KEEP,
             request,
         )

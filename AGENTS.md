@@ -17,7 +17,7 @@ A native Android app that:
 
 - **Implemented:** SMS → parse → store → report flow, covered by unit tests. Supported rule sets: HDFC, ICICI, SBI, generic UPI. Near-duplicate SMS (same sender + amount + direction + merchant within 2 minutes) are auto-flagged as duplicates; transactions can also be manually marked/unmarked as duplicate, and duplicates are excluded from totals/reports.
 - **Scaffolded, not functional:** email ingestion. `GmailClient` returns an empty list; there is no OAuth flow and no email sync worker. IMAP fallback is not started.
-- **Implemented:** categorization. On insert, a transaction is categorized from the user-editable `merchant_categories` table (exact merchant match) when present, otherwise by an ordered keyword-based default categorizer (`TransactionCategorizer`), and finally falls back to `OTHER`. The in-app UI for editing the mapping table is not built yet.
+- **Implemented:** categorization. On insert, a transaction is categorized from the user-editable `merchant_categories` table (exact merchant match) when present, otherwise by an ordered keyword-based default categorizer (`TransactionCategorizer`), and finally falls back to `OTHER`. Rows stored before categorization existed are re-categorized by a one-shot backfill (`BackfillCategoriesWorker`) on app start; it only touches `OTHER` rows, so manual corrections are preserved. The in-app UI for editing the mapping table is not built yet.
 - **Unrecognized queue:** messages are surfaced in-app. The "teach a new rule" flow (regex builder / manual tagging) is not implemented.
 
 ## 3. Core principles (non-negotiable)

@@ -119,7 +119,9 @@ Spend Tracker categorizes each transaction automatically:
 3. **Other** — anything not recognized stays in *Other*.
 
 If a transaction lands in the wrong category, open it and pick the correct one —
-your correction is saved.
+your correction is saved. Transactions imported before automatic categorization
+was in place are categorized for you the next time you open the app; anything you
+have already re-categorized yourself is left untouched.
 
 ## Privacy & where your data lives
 

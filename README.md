@@ -6,6 +6,12 @@ Spend Tracker watches incoming SMS and UPI notifications, detects which ones are
 
 Everything runs on-device. Message content is never sent to a backend, an analytics SDK, or a cloud parsing service.
 
+## Documentation
+
+- **User guide** — see [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
+- **Developer guide** — see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+- **Project constraints & conventions** — see [`AGENTS.md`](AGENTS.md).
+
 ## Features
 
 - **On-device SMS/UPI parsing** — rule-based, not an LLM, so results are deterministic and explainable

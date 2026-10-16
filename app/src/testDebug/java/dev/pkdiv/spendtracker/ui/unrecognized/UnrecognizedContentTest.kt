@@ -79,6 +79,24 @@ class UnrecognizedContentTest {
     }
 
     @Test
+    fun longMessage_collapsesThenExpands() {
+        val longBody = "Rs.100 debited from your account. " +
+            "Additional transaction context that wraps across several lines. ".repeat(20)
+        setContent(UnrecognizedUiState(listOf(alert(1, "HDFCBK").copy(body = longBody))))
+
+        compose.onNodeWithText("Show full message").assertIsDisplayed()
+        compose.onNodeWithText("Show full message").performClick()
+        compose.onNodeWithText("Show less").assertExists()
+    }
+
+    @Test
+    fun shortMessage_hidesTheExpandToggle() {
+        setContent(UnrecognizedUiState(listOf(alert(1, "HDFCBK"))))
+
+        compose.onNodeWithText("Show full message").assertDoesNotExist()
+    }
+
+    @Test
     fun emptyState_hidesClearAll() {
         setContent(UnrecognizedUiState(emptyList()))
 

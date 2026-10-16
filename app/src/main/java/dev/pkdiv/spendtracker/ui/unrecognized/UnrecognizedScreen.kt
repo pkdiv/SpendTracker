@@ -1,5 +1,6 @@
 package dev.pkdiv.spendtracker.ui.unrecognized
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +41,9 @@ import dev.pkdiv.spendtracker.ui.components.EmptyState
 import dev.pkdiv.spendtracker.ui.components.relativeDateLabel
 import dev.pkdiv.spendtracker.ui.theme.SpendTheme
 import java.time.ZoneId
+
+/** Keeps every collapsed alert card the same height; longer bodies expand on demand. */
+private const val COLLAPSED_LINES = 3
 
 @Composable
 fun UnrecognizedScreen(viewModel: UnrecognizedViewModel = hiltViewModel()) {
@@ -129,6 +134,8 @@ fun UnrecognizedContent(
 private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit) {
     val zone = remember { ZoneId.systemDefault() }
     val date = remember(message.receivedAt) { message.receivedAt.atZone(zone).toLocalDate() }
+    var expanded by remember { mutableStateOf(false) }
+    var hasOverflow by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -139,6 +146,7 @@ private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit)
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics(mergeDescendants = true) {}
+                .animateContentSize()
                 .padding(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -166,9 +174,21 @@ private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit)
             Text(
                 text = message.body,
                 style = MaterialTheme.typography.bodyMedium,
+                maxLines = if (expanded) Int.MAX_VALUE else COLLAPSED_LINES,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { result -> hasOverflow = result.hasVisualOverflow },
             )
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (hasOverflow || expanded) {
+                    TextButton(onClick = { expanded = !expanded }) {
+                        Text(stringResource(if (expanded) R.string.detail_show_less else R.string.detail_show_full))
+                    }
+                }
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.action_recognize))
                 }

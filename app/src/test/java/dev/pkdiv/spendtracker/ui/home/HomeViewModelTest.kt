@@ -14,6 +14,7 @@ import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.repository.TransactionRepository
 import dev.pkdiv.spendtracker.testutil.ViewModelTest
+import dev.pkdiv.spendtracker.widget.WidgetRefresher
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
@@ -44,12 +45,16 @@ class HomeViewModelTest : ViewModelTest() {
         return db to repository
     }
 
+    private val widgetRefresher = object : WidgetRefresher {
+        override fun refresh() = Unit
+    }
+
     private fun viewModel(context: Context, repository: TransactionRepository): HomeViewModel =
         track(
             HomeViewModel(
                 context,
                 repository,
-                SmsReader(context, SmsProcessor(ParserEngine(), repository)),
+                SmsReader(context, SmsProcessor(ParserEngine(), repository, widgetRefresher)),
             ),
         )
 

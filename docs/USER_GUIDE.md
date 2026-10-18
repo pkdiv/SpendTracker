@@ -65,6 +65,17 @@ debits appear in red; credits in green. Duplicates are dimmed with a *Duplicate*
 badge and excluded from totals, and internal *Self transfer* rows are greyed out
 — they're neither income nor spend, so they carry no colour.
 
+## Home-screen widget
+
+Add the **Spend Tracker** widget to your home screen (long-press an empty spot →
+*Widgets* → *Spend Tracker*) for a glanceable view of **this month's spending**
+and transaction count, without opening the app. Tap the widget to jump straight
+into the app.
+
+The widget uses the same numbers as the Home hero — money out only, with
+duplicates and internal self transfers excluded. It refreshes as new transactions
+arrive and follows your system light/dark theme.
+
 ## Activity
 
 The **Activity** tab shows your full transaction history, grouped by day with

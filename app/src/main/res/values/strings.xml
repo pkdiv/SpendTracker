@@ -169,6 +169,12 @@
     <string name="category_other">Other</string>
     <string name="category_self_transfer">Self transfer</string>
 
+    <!-- Home-screen widget -->
+    <string name="widget_spend_label">Spent this month</string>
+    <string name="widget_transactions">%1$d transactions</string>
+    <string name="widget_empty">No spend recorded yet</string>
+    <string name="widget_description">This month\'s spending at a glance</string>
+
     <string name="permission_sms_rationale">Spend Tracker reads your transaction SMS messages to detect spend. Messages are parsed on-device and never leave your phone.</string>
     <string name="permission_notification_rationale">Notifications are used for your end-of-day spend report.</string>
 

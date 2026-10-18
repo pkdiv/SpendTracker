@@ -76,6 +76,12 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   RawMessageBackfill.kt       fills in bodies missing from transactions
                   BackfillRawMessagesWorker.kt Hilt worker wrapper around backfill
                   BackfillCategoriesWorker.kt  one-shot re-categorize of `OTHER` rows
+                  WidgetUpdateWorker.kt       one-shot home-screen widget render
+                  WidgetScheduler.kt          enqueues the widget refresh (KEEP)
+  widget/         SpendWidgetProvider.kt     home-screen AppWidgetProvider
+                  SpendWidgetUpdater.kt       reads month-to-date + renders RemoteViews
+                  WidgetSpend.kt              pure month-to-date model (WidgetSpend.from)
+                  WidgetRefresher.kt          refresh seam bound to WidgetScheduler
   ui/             SpendTrackerApp.kt          NavHost + bottom bar (hoisted nav callbacks)
                   Formatters.kt              INR formatting (Indian grouping), date labels
                   components/              stateless composables (hoisted state)
@@ -83,7 +89,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   history/                 Activity list + HistoryFilters/HistoryFilterSheet
                   merchantcategory/        merchant -> category editor
   di/             AppModule.kt               DB + worker factory providers
-                  BindingModule.kt           SmsBodyResolver binding
+                  BindingModule.kt           SmsBodyResolver + WidgetRefresher bindings
   util/           HtmlToText.kt               strip HTML for email bodies
                   Privacy.kt                 cap bodies + mask OTP codes
                   MerchantKey.kt             canonical merchant key (trim + uppercase)
@@ -223,6 +229,11 @@ Both are unit-tested over synthetic entity lists.
 - `BackfillCategoriesWorker` — one-shot, `KEEP` policy; re-categorizes `OTHER`
   rows once through `recategorizeOtherTransactions()`. No permission needed and
   it is a no-op once every resolvable row has a category.
+- `WidgetUpdateWorker` — one-shot, `KEEP` policy, enqueued by `WidgetScheduler`
+  from the widget provider's `onUpdate`, on app start, and after each parsed SMS.
+  `SpendWidgetUpdater` renders the current month's spend (`RemoteViews`) from the
+  same `TransactionRepository.observeBetween` flow the Home screen uses; `KEEP`
+  collapses the per-message calls during an inbox backfill into one pending job.
 
 WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 `Configuration.Provider`.
@@ -260,6 +271,14 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   window, independent of the month selector; day bucketing comes from the pure
   `ReportAggregator.spendByDay`, and per-week totals/counts are assembled in
   `HomeViewModel` into `WeekSpend` pages.
+- The **home-screen widget** is the one non-Compose UI surface: a classic
+  `AppWidgetProvider` (`SpendWidgetProvider`) + `RemoteViews` layout
+  (`res/layout/widget_spend.xml`, no Glance dependency). It shows the same
+  month-to-date spend the Home hero does, aggregated by the pure
+  `WidgetSpend.from`. `SpendWidgetUpdater` reads the repository and pushes views;
+  text/background colors come from `values/colors.xml` with a `values-night`
+  override so it follows the system theme. Its `previewLayout` in
+  `res/xml/spend_widget_info.xml` is the widget-picker equivalent of a `@Preview`.
 
 ---
 
@@ -304,6 +323,9 @@ Coverage layers:
 - **Privacy** — `NoRawBodyLoggingTest`, `PrivacyTest`, `HtmlToTextTest`.
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved
   cases).
+- **Widget** — `WidgetSpendTest` (pure: debits-only sum, excludes self
+  transfers/duplicates/credits, empty → zero) and `SpendWidgetUpdaterTest`
+  (Robolectric + in-memory Room: the month window read ignores prior months).
 - **ViewModels** — `TransactionDetailViewModelTest`,
   `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
   `UnrecognizedViewModelTest`, `FormattersTest`.

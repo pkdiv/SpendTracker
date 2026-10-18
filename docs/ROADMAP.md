@@ -132,9 +132,17 @@ Priority tiers:
     last month on the monthly tab, and the "See all categories" screen that the
     Home top-categories chip already links to (`onNavigateToInsights`).
 
-- [ ] **Home-screen widget**
+- [x] **Home-screen widget**
   - A glanceable widget showing month-to-date spend, updated from the same
     repository Flow the Home screen uses.
+  - Done: `SpendWidgetProvider` + `SpendWidgetUpdater` render a classic
+    `RemoteViews` widget (`RemoteViews`, no Glance dependency) from
+    `TransactionRepository.observeBetween` for the current month, aggregated by
+    the pure `WidgetSpend.from` (debits only, minus self transfers/duplicates).
+    Refreshed by `WidgetUpdateWorker` (one-shot, `KEEP`) enqueued from the
+    provider's `onUpdate`, on app start, and after each parsed SMS — so it tracks
+    live + backfilled transactions. Light/dark colors via `values-night`; covered
+    by `WidgetSpendTest` (pure) and `SpendWidgetUpdaterTest` (Robolectric).
 
 - [ ] **Category & account editors**
   - Let users add/remove/rename user-defined categories/accounts. Requires
@@ -199,5 +207,5 @@ From `AGENTS.md` §9 and repo taste:
 
 ---
 
-Last verified against the codebase on 2026-10-16. Re-evaluate priority tiers as
+Last verified against the codebase on 2026-10-18. Re-evaluate priority tiers as
 email ingestion lands, since it unlocks follow-on items.

@@ -10,6 +10,7 @@ import dagger.hilt.android.HiltAndroidApp
 import dev.pkdiv.spendtracker.work.BackfillCategoriesWorker
 import dev.pkdiv.spendtracker.work.BackfillRawMessagesWorker
 import dev.pkdiv.spendtracker.work.ReportScheduler
+import dev.pkdiv.spendtracker.widget.WidgetRefresher
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -18,6 +19,8 @@ class SpendTrackerApp : Application(), Configuration.Provider {
     @Inject lateinit var workerFactory: HiltWorkerFactory
 
     @Inject lateinit var reportScheduler: ReportScheduler
+
+    @Inject lateinit var widgetRefresher: WidgetRefresher
 
     @Inject lateinit var workManager: WorkManager
 
@@ -32,6 +35,7 @@ class SpendTrackerApp : Application(), Configuration.Provider {
         reportScheduler.scheduleEom()
         scheduleRawMessageBackfill()
         scheduleCategoryBackfill()
+        widgetRefresher.refresh()
     }
 
     private fun scheduleRawMessageBackfill() {

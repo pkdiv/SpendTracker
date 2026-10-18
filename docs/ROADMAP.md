@@ -95,11 +95,24 @@ Priority tiers:
     statistic-of-the-month threshold) surfaced in the Insights screen.
   - Keep local + opt-in: no server-side ML.
 
-- [ ] **Manual transaction entry**
+- [x] **Manual transaction entry**
   - Let users record a transaction by hand (amount, date, merchant, category,
     account) for cash/offline spending. Persisted via `TransactionRepository`
-    with `source = SMS` semantics but a synthetic `rawMessageRef`.
+    with a synthetic `rawMessageRef`.
   - Acceptance: ViewModel state test + a Compose UI test for the entry form.
+  - Done: an **Add** FAB on Activity opens `AddTransactionScreen`
+    (`ui/addtransaction/`) with amount, direction, merchant, category, account
+    and a date picker; validation is the pure `ManualTransactionForm.errors()`.
+    Saved through `TransactionRepository.insertManual` with a synthetic
+    `manual:<uuid>` ref. **Refinement over the original plan:** entries are stored
+    with a new `TransactionSource.MANUAL` (no schema migration — the enum is a
+    TEXT column) rather than `SMS`, so the detail screen can show "Manual" and
+    hide the original-message/reference rows instead of a phantom "deleted
+    message". The user's chosen category is stored as-is (not re-derived from the
+    merchant), duplicate detection is bypassed, and the home-screen widget is
+    refreshed after a save. Covered by `AmountInputTest`, `ManualTransactionFormTest`
+    (pure), `AddTransactionViewModelTest` (incl. chosen-category-wins) and
+    `AddTransactionScreenTest` (Compose).
 
 - [ ] **Transaction notes / rename merchant**
   - Let users add a free-text note and/or rename a merchant on a transaction;

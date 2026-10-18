@@ -44,6 +44,7 @@
 
     <!-- Activity / history -->
     <string name="history_title">Activity</string>
+    <string name="history_add_transaction">Add</string>
     <string name="history_empty">No transactions found</string>
     <string name="history_empty_message">Transactions from your messages will appear here.</string>
     <string name="history_no_matches">No matching transactions</string>
@@ -133,6 +134,26 @@
     <string name="unrecognized_clear_confirm">Clear</string>
     <string name="unrecognized_clear_cancel">Cancel</string>
 
+    <!-- Manual transaction entry -->
+    <string name="add_transaction_title">Add transaction</string>
+    <string name="add_transaction_back">Back</string>
+    <string name="add_transaction_direction_out">Money out</string>
+    <string name="add_transaction_direction_in">Money in</string>
+    <string name="add_transaction_amount">Amount</string>
+    <string name="add_transaction_amount_error">Enter an amount greater than zero</string>
+    <string name="add_transaction_merchant">Merchant or payee</string>
+    <string name="add_transaction_merchant_hint">e.g. Chai stall</string>
+    <string name="add_transaction_merchant_error">Enter a merchant or payee</string>
+    <string name="add_transaction_category">Category</string>
+    <string name="add_transaction_account">Account / card (optional)</string>
+    <string name="add_transaction_account_hint">e.g. 1234</string>
+    <string name="add_transaction_date">Date</string>
+    <string name="add_transaction_date_pick">Pick a date</string>
+    <string name="add_transaction_date_confirm">OK</string>
+    <string name="add_transaction_date_cancel">Cancel</string>
+    <string name="add_transaction_save">Save</string>
+    <string name="add_transaction_saving">Saving…</string>
+
     <!-- Transaction detail -->
     <string name="detail_title">Transaction</string>
     <string name="detail_back">Back</string>
@@ -148,6 +169,7 @@
     <string name="detail_source">Source</string>
     <string name="detail_source_sms">SMS</string>
     <string name="detail_source_email">Email</string>
+    <string name="detail_source_manual">Manual</string>
     <string name="detail_date">Date</string>
     <string name="detail_unknown_sender">Unknown sender</string>
     <string name="detail_reveal_code">Reveal code</string>

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.Card
@@ -127,4 +128,5 @@ fun OriginalMessageCard(
 private fun sourceIcon(source: TransactionSource): ImageVector = when (source) {
     TransactionSource.SMS -> Icons.Filled.Sms
     TransactionSource.EMAIL -> Icons.Filled.Email
+    TransactionSource.MANUAL -> Icons.Filled.Edit
 }

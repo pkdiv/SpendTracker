@@ -162,14 +162,17 @@ private fun DetailContent(
 
         ParsedFieldsSection(detail)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // A hand-entered transaction has no source message to show.
+        if (detail.source != TransactionSource.MANUAL) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-        SectionHeader(title = stringResource(R.string.detail_original_message))
+            SectionHeader(title = stringResource(R.string.detail_original_message))
 
-        if (detail.body == null) {
-            MessageUnavailableCard(reason = unavailableReason ?: MessageUnavailableReason.DELETED)
-        } else {
-            OriginalMessageCard(detail = detail)
+            if (detail.body == null) {
+                MessageUnavailableCard(reason = unavailableReason ?: MessageUnavailableReason.DELETED)
+            } else {
+                OriginalMessageCard(detail = detail)
+            }
         }
     }
 }
@@ -267,10 +270,12 @@ private fun ParsedFieldsSection(detail: TransactionDetail) {
                     value = "•••• ${detail.account}",
                 )
             }
-            FieldRow(
-                label = stringResource(R.string.detail_reference),
-                value = detail.reference,
-            )
+            if (detail.source != TransactionSource.MANUAL) {
+                FieldRow(
+                    label = stringResource(R.string.detail_reference),
+                    value = detail.reference,
+                )
+            }
             FieldRow(
                 label = stringResource(R.string.detail_source),
                 value = sourceLabel(detail.source),
@@ -308,6 +313,7 @@ private fun FieldRow(label: String, value: String) {
 private fun sourceLabel(source: TransactionSource): String = when (source) {
     TransactionSource.SMS -> stringResource(R.string.detail_source_sms)
     TransactionSource.EMAIL -> stringResource(R.string.detail_source_email)
+    TransactionSource.MANUAL -> stringResource(R.string.detail_source_manual)
 }
 
 @Preview(name = "Content SMS", showBackground = true)
@@ -328,6 +334,17 @@ private fun DetailContentEmailPreview() {
     SpendTrackerTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             DetailContent(detail = PreviewData.emailDetail)
+        }
+    }
+}
+
+@Preview(name = "Content manual", showBackground = true)
+@Preview(name = "Content manual (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DetailContentManualPreview() {
+    SpendTrackerTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            DetailContent(detail = PreviewData.manualDetail)
         }
     }
 }

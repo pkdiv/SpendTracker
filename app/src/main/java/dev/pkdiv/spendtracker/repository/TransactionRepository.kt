@@ -12,9 +12,12 @@ import dev.pkdiv.spendtracker.ingestion.email.EmailMessage
 import dev.pkdiv.spendtracker.parsing.ParsedTransaction
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionCategorizer
+import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.util.MerchantKey
 import dev.pkdiv.spendtracker.util.Privacy
+import java.math.BigDecimal
 import java.time.Instant
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -96,6 +99,33 @@ class TransactionRepository @Inject constructor(
             )
         )
     }
+
+    /**
+     * Stores a hand-entered transaction (cash/offline spending). Persisted with a
+     * synthetic reference and [TransactionSource.MANUAL]; the category is stored as
+     * chosen rather than re-derived, and it bypasses SMS duplicate detection.
+     */
+    suspend fun insertManual(
+        amount: BigDecimal,
+        direction: TransactionDirection,
+        merchant: String,
+        category: TransactionCategory,
+        account: String?,
+        timestamp: Instant,
+    ): Long = transactionDao.insert(
+        TransactionEntity(
+            amount = amount,
+            direction = direction,
+            merchant = merchant,
+            account = account,
+            category = category,
+            timestamp = timestamp,
+            rawMessageRef = "manual:${UUID.randomUUID()}",
+            source = TransactionSource.MANUAL,
+            receivedAt = timestamp.toEpochMilli(),
+            isDuplicate = false,
+        ),
+    )
 
     suspend fun insertUnrecognized(
         sender: String,

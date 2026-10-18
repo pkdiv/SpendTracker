@@ -46,7 +46,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   UnrecognizedMessageEntity / DAO
                   MerchantCategoryEntity / DAO   merchant -> category override table
                   DuplicateDetector.kt       near-duplicate matching window
-                  TransactionSource.kt       SMS | EMAIL enum
+                  TransactionSource.kt       SMS | EMAIL | MANUAL enum
                   Converters.kt (inner)      BigDecimal/Instant/enum Room converters
   parsing/        ParserEngine.kt            routes a message to the first matching rule
                   AmountParser.kt            amount/direction/timestamp extraction
@@ -88,11 +88,13 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   home/, detail/, reports/, settings/, unrecognized/,
                   history/                 Activity list + HistoryFilters/HistoryFilterSheet
                   merchantcategory/        merchant -> category editor
+                  addtransaction/          manual-entry form (AddTransactionScreen/ViewModel)
   di/             AppModule.kt               DB + worker factory providers
                   BindingModule.kt           SmsBodyResolver + WidgetRefresher bindings
   util/           HtmlToText.kt               strip HTML for email bodies
                   Privacy.kt                 cap bodies + mask OTP codes
                   MerchantKey.kt             canonical merchant key (trim + uppercase)
+                  AmountInput.kt             pure amount input sanitize/parse
   MainActivity.kt, MainViewModel.kt        permissions + trigger backfill
   SpendTrackerApp.kt (root)  Application, Hilt, WorkManager config + schedule on launch
 ```
@@ -120,6 +122,8 @@ SMS arrives  ──► SmsReceiver.onReceive                 (real time, backgro
            BackfillRawMessagesWorker fills missing bodies via SmsBodyResolver
 
 Email (future) ──► EmailProcessor.process(email) ──► TransactionRepository.insertEmail
+
+Manual entry  ──► AddTransactionViewModel.save()  ──► TransactionRepository.insertManual
 ```
 
 `TransactionRepository` is the **only** write path for transactions. Every insert
@@ -128,6 +132,12 @@ goes through `transactionDao.insertDeduplicated(...)`, which checks
 merchant within a 2-minute window) and sets `isDuplicate` instead of dropping.
 If a duplicate is detected, the existing row's raw body/time are backfilled via
 `updateRawMessage`.
+
+`insertManual` is the exception: a hand-entered transaction (`source = MANUAL`)
+bypasses duplicate detection and stores the user's chosen category verbatim
+rather than running `resolveCategory`, so an explicit pick is never overridden by
+the categorizer. It carries a synthetic `manual:<uuid>` `rawMessageRef`, and
+`AddTransactionViewModel` refreshes the home-screen widget after the insert.
 
 ### Parsing model
 
@@ -279,6 +289,15 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   text/background colors come from `values/colors.xml` with a `values-night`
   override so it follows the system theme. Its `previewLayout` in
   `res/xml/spend_widget_info.xml` is the widget-picker equivalent of a `@Preview`.
+- Manual entry lives at `ui/addtransaction/`: an **Add** FAB on Activity
+  (`onAddTransaction` hoisted to the NavHost) opens `AddTransactionScreen`. The
+  form is a stateless `AddTransactionContent` over one `AddTransactionUiState`
+  (`Editing(form, errors, saving)` → `Saved`), driven by
+  `AddTransactionViewModel`; amount input is sanitized/parsed by the shared pure
+  `AmountInput`, and validation is `ManualTransactionForm.errors()`.
+- The detail screen special-cases `TransactionSource.MANUAL`: it shows "Manual"
+  and drops the reference + "Original message" rows, since a hand-entered
+  transaction has no source message.
 
 ---
 
@@ -326,6 +345,11 @@ Coverage layers:
 - **Widget** — `WidgetSpendTest` (pure: debits-only sum, excludes self
   transfers/duplicates/credits, empty → zero) and `SpendWidgetUpdaterTest`
   (Robolectric + in-memory Room: the month window read ignores prior months).
+- **Manual entry** — `AmountInputTest` (pure sanitize/parse) and
+  `ManualTransactionFormTest` (pure validation); `AddTransactionViewModelTest`
+  (Robolectric + in-memory Room: stores a `MANUAL` row, the chosen category wins
+  over the categorizer, blank amount/merchant block the save and refresh nothing);
+  `AddTransactionScreenTest` (Compose, `src/testDebug`) drives the form end to end.
 - **ViewModels** — `TransactionDetailViewModelTest`,
   `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
   `UnrecognizedViewModelTest`, `FormattersTest`.

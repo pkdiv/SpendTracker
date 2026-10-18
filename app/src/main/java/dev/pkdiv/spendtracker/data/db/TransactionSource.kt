@@ -4,4 +4,5 @@ package dev.pkdiv.spendtracker.data.db
 enum class TransactionSource {
     SMS,
     EMAIL,
+    MANUAL,
 }

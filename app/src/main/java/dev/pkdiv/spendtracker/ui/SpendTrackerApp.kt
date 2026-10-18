@@ -42,6 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.pkdiv.spendtracker.MainViewModel
 import dev.pkdiv.spendtracker.R
+import dev.pkdiv.spendtracker.ui.addtransaction.AddTransactionScreen
 import dev.pkdiv.spendtracker.ui.detail.TransactionDetailScreen
 import dev.pkdiv.spendtracker.ui.history.HistoryScreen
 import dev.pkdiv.spendtracker.ui.home.HomeScreen
@@ -56,6 +57,7 @@ private const val ROUTE_REPORTS = "reports"
 private const val ROUTE_ALERTS = "unrecognized"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_MERCHANT_CATEGORIES = "merchant_categories"
+private const val ROUTE_ADD_TRANSACTION = "add_transaction"
 
 private data class Destination(
     val route: String,
@@ -138,6 +140,7 @@ fun SpendTrackerApp() {
             composable(ROUTE_HISTORY) {
                 HistoryScreen(
                     onTransactionClick = { id -> navController.navigate("transaction/$id") },
+                    onAddTransaction = { navController.navigate(ROUTE_ADD_TRANSACTION) },
                 )
             }
             composable(ROUTE_REPORTS) { ReportsScreen() }
@@ -149,6 +152,9 @@ fun SpendTrackerApp() {
             }
             composable(ROUTE_MERCHANT_CATEGORIES) {
                 MerchantCategoryScreen(onBack = { navController.popBackStack() })
+            }
+            composable(ROUTE_ADD_TRANSACTION) {
+                AddTransactionScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = "transaction/{id}",

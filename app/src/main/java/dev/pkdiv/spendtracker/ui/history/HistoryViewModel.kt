@@ -7,6 +7,7 @@ import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.parsing.TransactionCategory
 import dev.pkdiv.spendtracker.parsing.TransactionDirection
 import dev.pkdiv.spendtracker.repository.TransactionRepository
+import dev.pkdiv.spendtracker.util.AmountInput
 import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
@@ -48,9 +49,9 @@ class HistoryViewModel @Inject constructor(
 
     fun setDateRange(from: LocalDate?, to: LocalDate?) = update { it.copy(fromDate = from, toDate = to) }
 
-    fun setMinAmount(input: String) = update { it.copy(minAmountInput = sanitizeAmount(input)) }
+    fun setMinAmount(input: String) = update { it.copy(minAmountInput = AmountInput.sanitize(input)) }
 
-    fun setMaxAmount(input: String) = update { it.copy(maxAmountInput = sanitizeAmount(input)) }
+    fun setMaxAmount(input: String) = update { it.copy(maxAmountInput = AmountInput.sanitize(input)) }
 
     fun setExcludeDuplicates(exclude: Boolean) = update { it.copy(excludeDuplicates = exclude) }
 
@@ -66,21 +67,5 @@ class HistoryViewModel @Inject constructor(
 
     private fun update(transform: (HistoryFilters) -> HistoryFilters) {
         filters.value = transform(filters.value)
-    }
-
-    /** Keeps only digits and a single decimal point so the amount parses reliably. */
-    private fun sanitizeAmount(input: String): String {
-        var seenDot = false
-        return buildString {
-            input.forEach { char ->
-                when {
-                    char.isDigit() -> append(char)
-                    char == '.' && !seenDot -> {
-                        append(char)
-                        seenDot = true
-                    }
-                }
-            }
-        }
     }
 }

@@ -129,4 +129,22 @@ object PreviewData {
         bodyTruncated = false,
         isDuplicate = false,
     )
+
+    val manualDetail: TransactionDetail = TransactionDetail(
+        id = 3,
+        amount = BigDecimal("450.00"),
+        direction = TransactionDirection.DEBIT,
+        merchant = "Chai stall",
+        account = null,
+        category = TransactionCategory.FOOD,
+        timestamp = now,
+        reference = "manual:00000000-0000-0000-0000-000000000000",
+        source = TransactionSource.MANUAL,
+        sender = null,
+        subject = null,
+        receivedAt = now,
+        body = null,
+        bodyTruncated = false,
+        isDuplicate = false,
+    )
 }

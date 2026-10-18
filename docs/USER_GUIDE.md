@@ -92,6 +92,29 @@ the most recent first.
 - **Clear filters** resets everything (search included). The Filters chip shows a
   count of the active filters, and when nothing matches you'll see a
   "No matching transactions" message.
+- **Add** (the floating button) records a transaction by hand — see *Adding a
+  transaction manually* below.
+
+## Adding a transaction manually
+
+Not every purchase arrives by SMS — cash, split bills, or anything you paid
+offline. Tap **Add** on the Activity screen to record one yourself:
+
+- **Money out / Money in** — the direction (defaults to money out).
+- **Amount** — the amount you spent (or received).
+- **Merchant or payee** — who it was for, e.g. *Chai stall*.
+- **Category** — pick one; your choice is saved exactly as chosen and is never
+  re-guessed from the merchant.
+- **Account / card** — optional, e.g. the last few digits.
+- **Date** — defaults to today; tap it to pick another day.
+
+Tap **Save** and the transaction appears in Activity and counts towards your
+totals and reports like any other.
+
+Manual entries are labelled **Manual** on their detail screen (there's no source
+message to show, so the original-message section is hidden). They aren't run
+through the SMS duplicate check, so adding one never merges with — or gets
+flagged against — a texted transaction.
 
 ## Insights
 

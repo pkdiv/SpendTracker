@@ -15,14 +15,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +53,7 @@ import java.time.ZoneId
 @Composable
 fun HistoryScreen(
     onTransactionClick: (Long) -> Unit = {},
+    onAddTransaction: () -> Unit = {},
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -63,130 +67,146 @@ fun HistoryScreen(
             .sortedByDescending { (date, _) -> date }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = stringResource(R.string.history_title),
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        )
-
-        OutlinedTextField(
-            value = filters.query,
-            onValueChange = viewModel::setSearchQuery,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            placeholder = { Text(stringResource(R.string.history_search_hint)) },
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = {
-                if (filters.query.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.history_clear_filters))
-                    }
-                }
-            },
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 4.dp, top = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            FilterChip(
-                selected = filters.activeFilterCount > 0,
-                onClick = { showFilters = true },
-                label = {
-                    Text(
-                        text = if (filters.activeFilterCount > 0) {
-                            stringResource(R.string.history_filters_count, filters.activeFilterCount)
-                        } else {
-                            stringResource(R.string.history_filters)
-                        },
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Tune,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddTransaction,
+                icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.history_add_transaction)) },
             )
-            Spacer(modifier = Modifier.weight(1f))
-            if (filters.hasAnyCriteria) {
-                TextButton(onClick = viewModel::clearFilters) {
-                    Text(stringResource(R.string.history_clear_filters))
-                }
-            }
-        }
-
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
         ) {
-            item(key = "all") {
+            Text(
+                text = stringResource(R.string.history_title),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            )
+
+            OutlinedTextField(
+                value = filters.query,
+                onValueChange = viewModel::setSearchQuery,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = { Text(stringResource(R.string.history_search_hint)) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (filters.query.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.history_clear_filters))
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 4.dp, top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 FilterChip(
-                    selected = filters.category == null,
-                    onClick = { viewModel.setCategory(null) },
-                    label = { Text(stringResource(R.string.history_filter_all)) },
-                )
-            }
-            items(TransactionCategory.entries, key = { it.name }) { category ->
-                FilterChip(
-                    selected = filters.category == category,
-                    onClick = {
-                        viewModel.setCategory(if (filters.category == category) null else category)
+                    selected = filters.activeFilterCount > 0,
+                    onClick = { showFilters = true },
+                    label = {
+                        Text(
+                            text = if (filters.activeFilterCount > 0) {
+                                stringResource(R.string.history_filters_count, filters.activeFilterCount)
+                            } else {
+                                stringResource(R.string.history_filters)
+                            },
+                        )
                     },
-                    label = { Text(stringResource(Formatters.categoryLabelRes(category))) },
                     leadingIcon = {
                         Icon(
-                            imageVector = categoryIcon(category),
+                            imageVector = Icons.Filled.Tune,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
                     },
                 )
-            }
-        }
-
-        if (state.transactions.isEmpty()) {
-            if (filters.hasAnyCriteria) {
-                EmptyState(
-                    title = stringResource(R.string.history_no_matches),
-                    message = stringResource(R.string.history_no_matches_message),
-                    icon = Icons.Filled.Tune,
-                )
-            } else {
-                EmptyState(
-                    title = stringResource(R.string.history_empty),
-                    message = stringResource(R.string.history_empty_message),
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                sections.forEach { (date, transactions) ->
-                    stickyHeader(key = "header_$date") {
-                        DateHeader(date = date)
+                Spacer(modifier = Modifier.weight(1f))
+                if (filters.hasAnyCriteria) {
+                    TextButton(onClick = viewModel::clearFilters) {
+                        Text(stringResource(R.string.history_clear_filters))
                     }
-                    items(transactions, key = { it.id }) { transaction ->
-                        TransactionRow(
-                            transaction = transaction,
-                            onTransactionClick = onTransactionClick,
-                            onCategoryChange = { category ->
-                                viewModel.updateCategory(transaction.id, category)
-                            },
-                            onToggleDuplicate = { id, isDuplicate ->
-                                viewModel.setDuplicate(id, isDuplicate)
-                            },
-                        )
+                }
+            }
+
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                item(key = "all") {
+                    FilterChip(
+                        selected = filters.category == null,
+                        onClick = { viewModel.setCategory(null) },
+                        label = { Text(stringResource(R.string.history_filter_all)) },
+                    )
+                }
+                items(TransactionCategory.entries, key = { it.name }) { category ->
+                    FilterChip(
+                        selected = filters.category == category,
+                        onClick = {
+                            viewModel.setCategory(if (filters.category == category) null else category)
+                        },
+                        label = { Text(stringResource(Formatters.categoryLabelRes(category))) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = categoryIcon(category),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        },
+                    )
+                }
+            }
+
+            if (state.transactions.isEmpty()) {
+                if (filters.hasAnyCriteria) {
+                    EmptyState(
+                        title = stringResource(R.string.history_no_matches),
+                        message = stringResource(R.string.history_no_matches_message),
+                        icon = Icons.Filled.Tune,
+                    )
+                } else {
+                    EmptyState(
+                        title = stringResource(R.string.history_empty),
+                        message = stringResource(R.string.history_empty_message),
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    sections.forEach { (date, transactions) ->
+                        stickyHeader(key = "header_$date") {
+                            DateHeader(date = date)
+                        }
+                        items(transactions, key = { it.id }) { transaction ->
+                            TransactionRow(
+                                transaction = transaction,
+                                onTransactionClick = onTransactionClick,
+                                onCategoryChange = { category ->
+                                    viewModel.updateCategory(transaction.id, category)
+                                },
+                                onToggleDuplicate = { id, isDuplicate ->
+                                    viewModel.setDuplicate(id, isDuplicate)
+                                },
+                            )
+                        }
                     }
                 }
             }

@@ -22,6 +22,7 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 - **End-of-day report** — local notification with total spend and transaction count at a configurable time
 - **End-of-month report** — total, category breakdown, top merchants, and previous-month comparison
 - **Home-screen widget** — month-to-date spend at a glance, updated as transactions arrive
+- **Manual entry** — add cash/offline spending by hand from the Activity screen
 - **Minimal permissions** — only SMS read/receive, notifications, and internet (reserved for future email fetch)
 
 ## Tech stack
@@ -90,7 +91,7 @@ Matched messages become `ParseResult.Parsed`. Unmatched messages become `ParseRe
 
 ## Current status
 
-The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization is wired in: a transaction is categorized from the user-editable `merchant_categories` table when an exact merchant match exists, otherwise by a built-in keyword-based default categorizer, and finally falls back to `OTHER`. You can teach the app a merchant's category from **Settings › Merchant categories** — entries are stored with a normalized key so matching is reliable. Rows stored before categorization existed are re-categorized automatically by a one-shot backfill on app start (only `OTHER` rows are touched, so manual corrections are never overwritten). A home-screen widget shows this month's spend, refreshed when transactions arrive and on a system update cycle.
+The core SMS → parse → store → report flow is implemented and covered by unit tests. Email ingestion is scaffolded but not functional yet: `GmailClient` currently returns an empty list, and there is no OAuth flow or email sync worker. Categorization is wired in: a transaction is categorized from the user-editable `merchant_categories` table when an exact merchant match exists, otherwise by a built-in keyword-based default categorizer, and finally falls back to `OTHER`. You can teach the app a merchant's category from **Settings › Merchant categories** — entries are stored with a normalized key so matching is reliable. Rows stored before categorization existed are re-categorized automatically by a one-shot backfill on app start (only `OTHER` rows are touched, so manual corrections are never overwritten). A home-screen widget shows this month's spend, refreshed when transactions arrive and on a system update cycle. You can also add a transaction by hand from the Activity screen — manual entries are kept separate (source "Manual"), keep the category you pick, and are excluded from SMS duplicate detection.
 
 ## Releases
 

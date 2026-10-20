@@ -70,6 +70,9 @@ app/src/main/java/dev/pkdiv/spendtracker/
   reports/        ReportGenerator.kt        loads rows for a day/month
                   ReportAggregator.kt       pure aggregation (totals, top, by-category)
                   ReportModels.kt           DailyReport / MonthlyReport / CategorySpend / MerchantSpend
+  export/         TransactionCsv.kt           pure CSV serialization (parsed fields only)
+                  ExportPeriod.kt            pure export window (this/last/all time)
+                  ExportFileWriter.kt        writes CSV to cache + FileProvider content uri
   work/           EodReportWorker.kt         daily notification
                   EomReportWorker.kt          month-end notification
                   ReportScheduler.kt          schedules the two periodic workers
@@ -89,6 +92,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   history/                 Activity list + HistoryFilters/HistoryFilterSheet
                   merchantcategory/        merchant -> category editor
                   addtransaction/          manual-entry form (AddTransactionScreen/ViewModel)
+                  export/                  opt-in CSV export (ExportScreen/ViewModel)
   di/             AppModule.kt               DB + worker factory providers
                   BindingModule.kt           SmsBodyResolver + WidgetRefresher bindings
   util/           HtmlToText.kt               strip HTML for email bodies
@@ -311,6 +315,13 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   **Add/Edit note**, opening `RenameMerchantDialog` / `TransactionNoteDialog`
   (mirroring `MerchantCategoryEditorDialog`). The merchant header re-renders live
   from the repository flow; a note shows in a `Note` card only when set.
+- Export lives at `ui/export/`: **Settings → Export** opens `ExportScreen`, a
+  stateless `ExportContent` over one `ExportUiState`
+  (`Loading`/`Content(period, count, exporting)`/`Shareable`). The user picks a
+  period, taps **Export CSV**, and `ExportViewModel` builds the file via the pure
+  `TransactionCsv` + `ExportFileWriter`; the `Shareable` state drives a
+  `LaunchedEffect` that starts `Intent.createChooser(ACTION_SEND)` for `text/csv`
+  and then returns to the form. Nothing runs without the explicit tap.
 
 ---
 
@@ -326,6 +337,10 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   (`Privacy.capBody`) and HTML email is stripped (`HtmlToText`).
 - **No backups.** `backup_rules.xml` and `data_extraction_rules.xml` exclude
   `spendtracker.db*` from both cloud backup and device transfer.
+- **Export is explicit and on-device.** `TransactionCsv` writes parsed fields only
+  (never raw message content) into the app **cache** (never backed up), exposed to
+  the system share sheet through a `FileProvider`. The app performs no upload — the
+  user picks the destination — and the flow only runs on a deliberate tap.
 - **Permissions** are runtime-requested (`POST_NOTIFICATIONS` on Android 13+) and
   surfaced with rationale strings; see §3 of `AGENTS.md` for the full list —
   adding one requires updating the permission-rationale screen.
@@ -363,6 +378,15 @@ Coverage layers:
   (Robolectric + in-memory Room: stores a `MANUAL` row, the chosen category wins
   over the categorizer, blank amount/merchant block the save and refresh nothing);
   `AddTransactionScreenTest` (Compose, `src/testDebug`) drives the form end to end.
+- **Export** — `TransactionCsvTest` (pure: header/rows, escaping, ordering, and
+  that raw message content is never included) and `ExportPeriodTest` (pure window
+  math); `ExportViewModelTest` (Robolectric: period counts, and that a tap hands the
+  CSV to the injected writer and yields a `content://` uri, using a recording fake);
+  `ExportFileWriterTest` (Robolectric: the real `CacheExportFileWriter` writes into
+  the cache and exposes it through the `FileProvider`); `ExportContentTest` (Compose,
+  `src/testDebug`). The unit-test manifest (`src/test/AndroidManifest.xml`) mirrors
+  the app's `FileProvider` declaration so the writer test can resolve its
+  `content://` uri.
 - **Notes & rename** — `TransactionEditRepositoryTest` (Robolectric + in-memory
   Room: `renameMerchant` updates the row and teaches the normalized mapping, blank
   names are ignored; `setNote` trims and clears blank to null);

@@ -136,11 +136,21 @@ Priority tiers:
     passive Insight only — no budgeting/alerting. Surfaces patterns, doesn't
     nag.
 
-- [ ] **Export (opt-in, user-initiated only)**
+- [x] **Export (opt-in, user-initiated only)**
   - A manual "Export" action (CSV or JSON of transactions for a selected period),
     gated behind a deliberate tap and respecting the no-backup stance (the DB
     stays excluded from system backup; export is an explicit user action).
   - Must not transmit data; the share sheet stays on-device.
+  - Done: **Settings → Export** opens `ExportScreen` (`ui/export/`); the user picks
+    This month / Last month / All time and taps **Export CSV**. The file is built by
+    the pure `TransactionCsv` (parsed fields only — never raw message content) and
+    written to the app **cache** by `ExportFileWriter`, then handed to the on-device
+    share sheet through a `FileProvider` (`${applicationId}.fileprovider`,
+    `res/xml/file_paths.xml`). Nothing is uploaded and no export happens implicitly —
+    it runs only on the explicit tap. Covered by `TransactionCsvTest` +
+    `ExportPeriodTest` (pure), `ExportViewModelTest` (Robolectric + Room, with a
+    recording writer), `ExportFileWriterTest` (the real cache + `FileProvider`
+    writer) and `ExportContentTest` (Compose).
 
 
 ## P2 — Medium (valuable polish / growth)
@@ -232,5 +242,5 @@ From `AGENTS.md` §9 and repo taste:
 
 ---
 
-Last verified against the codebase on 2026-10-18. Re-evaluate priority tiers as
+Last verified against the codebase on 2026-10-19. Re-evaluate priority tiers as
 email ingestion lands, since it unlocks follow-on items.

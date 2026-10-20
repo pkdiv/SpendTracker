@@ -166,6 +166,7 @@ In Settings you can:
 - **End-of-day notifications** — toggle the daily summary notification on/off.
 - **Merchant categories** — teach the app which category a merchant belongs to
   (see *How categorization works*).
+- **Export** — save or share a CSV of your transactions (see *Export*).
 - Review the status of **SMS access** and **notifications** permissions.
 - See the installed **app version** under **About** at the bottom of the screen.
 
@@ -201,6 +202,22 @@ your correction is saved. Transactions imported before automatic categorization
 was in place are categorized for you the next time you open the app; anything you
 have already re-categorized yourself is left untouched.
 
+## Export
+
+**Settings › Export** lets you take your data with you. Pick a period — **This
+month**, **Last month**, or **All time** — and tap **Export CSV**. The app writes
+a spreadsheet-friendly CSV and opens your phone's share sheet, where you choose
+where it goes (a file manager, Drive, email, and so on).
+
+- **It only ever runs when you tap it.** Nothing is exported in the background.
+- **Nothing is uploaded by the app.** There is no server involved — the share
+  sheet is the on-device Android one, and you pick the destination.
+- The file contains only your parsed transactions (date, direction, amount,
+  merchant, category, account, source) — **never the text of your messages**.
+
+The file is written to the app's temporary storage, so it isn't part of any
+backup.
+
 ## Privacy & where your data lives
 
 Spend Tracker is built around these guarantees:
@@ -217,6 +234,9 @@ Spend Tracker is built around these guarantees:
   default and require a tap to reveal.
 - **No analytics or ads.** There are no third-party analytics SDKs and no ad
   libraries.
+- **Export is under your control.** Exporting writes a CSV of your parsed
+  transactions (never message bodies) and opens the system share sheet. The app
+  sends nothing — it goes only where you choose.
 
 ## Tips
 

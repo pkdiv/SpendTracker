@@ -4,6 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dev.pkdiv.spendtracker.export.CacheExportFileWriter
+import dev.pkdiv.spendtracker.export.ExportFileWriter
 import dev.pkdiv.spendtracker.ingestion.sms.ContentResolverSmsBodyResolver
 import dev.pkdiv.spendtracker.ingestion.sms.SmsBodyResolver
 import dev.pkdiv.spendtracker.widget.WidgetRefresher
@@ -12,6 +14,9 @@ import dev.pkdiv.spendtracker.work.WidgetScheduler
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class BindingModule {
+
+    @Binds
+    abstract fun bindExportFileWriter(impl: CacheExportFileWriter): ExportFileWriter
 
     @Binds
     abstract fun bindSmsBodyResolver(impl: ContentResolverSmsBodyResolver): SmsBodyResolver

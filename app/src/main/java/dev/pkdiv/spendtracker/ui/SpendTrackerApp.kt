@@ -44,6 +44,7 @@ import dev.pkdiv.spendtracker.MainViewModel
 import dev.pkdiv.spendtracker.R
 import dev.pkdiv.spendtracker.ui.addtransaction.AddTransactionScreen
 import dev.pkdiv.spendtracker.ui.detail.TransactionDetailScreen
+import dev.pkdiv.spendtracker.ui.export.ExportScreen
 import dev.pkdiv.spendtracker.ui.history.HistoryScreen
 import dev.pkdiv.spendtracker.ui.home.HomeScreen
 import dev.pkdiv.spendtracker.ui.merchantcategory.MerchantCategoryScreen
@@ -58,6 +59,7 @@ private const val ROUTE_ALERTS = "unrecognized"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_MERCHANT_CATEGORIES = "merchant_categories"
 private const val ROUTE_ADD_TRANSACTION = "add_transaction"
+private const val ROUTE_EXPORT = "export"
 
 private data class Destination(
     val route: String,
@@ -148,6 +150,7 @@ fun SpendTrackerApp() {
             composable(ROUTE_SETTINGS) {
                 SettingsScreen(
                     onNavigateToMerchantCategories = { navController.navigate(ROUTE_MERCHANT_CATEGORIES) },
+                    onNavigateToExport = { navController.navigate(ROUTE_EXPORT) },
                 )
             }
             composable(ROUTE_MERCHANT_CATEGORIES) {
@@ -155,6 +158,9 @@ fun SpendTrackerApp() {
             }
             composable(ROUTE_ADD_TRANSACTION) {
                 AddTransactionScreen(onBack = { navController.popBackStack() })
+            }
+            composable(ROUTE_EXPORT) {
+                ExportScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = "transaction/{id}",

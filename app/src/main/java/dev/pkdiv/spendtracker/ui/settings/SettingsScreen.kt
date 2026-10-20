@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
@@ -42,6 +43,7 @@ import dev.pkdiv.spendtracker.ui.components.SectionHeader
 @Composable
 fun SettingsScreen(
     onNavigateToMerchantCategories: () -> Unit,
+    onNavigateToExport: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -96,6 +98,23 @@ fun SettingsScreen(
                     )
                 },
                 modifier = Modifier.clickable { onNavigateToMerchantCategories() },
+            )
+        }
+
+        SectionHeader(title = stringResource(R.string.settings_section_data))
+        SettingsGroup {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_export)) },
+                supportingContent = { Text(stringResource(R.string.settings_export_hint)) },
+                leadingContent = { SettingIcon(Icons.Filled.FileDownload) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable { onNavigateToExport() },
             )
         }
 

@@ -10,6 +10,7 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 
 - **User guide** — see [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
 - **Developer guide** — see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+- **Play Store release checklist** — see [`docs/PLAY_STORE_RELEASE.md`](docs/PLAY_STORE_RELEASE.md).
 - **Project constraints & conventions** — see [`AGENTS.md`](AGENTS.md).
 
 ## Features

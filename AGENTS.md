@@ -105,6 +105,7 @@ app/src/test/       # Unit tests — parsing rules and report aggregation
 - Pushing a `v*` tag (e.g. `v0.1.0`) or a manual `workflow_dispatch` runs the GitHub Actions workflow: build, test, attach a release APK to a GitHub Release.
 - The release APK is signed in CI from a keystore stored as repository secrets.
 - **Never commit the keystore or signing credentials.** Agents must not add signing config with inline secrets.
+- The Google Play submission steps live in [`docs/PLAY_STORE_RELEASE.md`](docs/PLAY_STORE_RELEASE.md). Follow it for a store release; a `v*` tag alone is not a Play release.
 
 ## 10. Non-goals (v1)
 

@@ -228,7 +228,10 @@ These are intentionally deferred because they conflict with the
 
 ## Release & CI coordination (non-negotiable checklist)
 
-From `AGENTS.md` §9 and repo taste:
+The full Play Store submission checklist (build blockers, policy declarations,
+store listing, testing tracks and rollout) lives in
+[`PLAY_STORE_RELEASE.md`](./PLAY_STORE_RELEASE.md). From `AGENTS.md` §9 and repo
+taste:
 
 - [ ] CI builds **only** on `v*` tags and manual dispatch (do not add
       branch-push triggers).

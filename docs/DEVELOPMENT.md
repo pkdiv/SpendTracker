@@ -41,7 +41,7 @@ from backup.
 ```
 app/src/main/java/dev/pkdiv/spendtracker/
   data/           SettingsStore.kt          Preferences DataStore + AppSettings
-  data/db/        SpendTrackerDatabase.kt   Room DB (v8) + migrations + TypeConverters
+  data/db/        SpendTrackerDatabase.kt   Room DB (v9) + migrations + TypeConverters
                   TransactionEntity / DAO    transactions table
                   UnrecognizedMessageEntity / DAO
                   MerchantCategoryEntity / DAO   merchant -> category override table
@@ -157,15 +157,15 @@ parses dates/timestamps from several Indian formats. Pure and unit-tested.
 
 ## 4. Data layer
 
-### Room schema (`SpendTrackerDatabase`, version 8)
+### Room schema (`SpendTrackerDatabase`, version 9)
 
 Three tables, all with exported JSON schemas under `app/schemas/` and
 migrations shipped as `Migration` objects (no destructive fallbacks):
 
 - `transactions` — amount, direction, merchant, account, category, timestamp,
   rawMessageRef, smsId, rawSender, rawBody, source, sourceRef, rawSubject,
-  receivedAt, bodyTruncated, isDuplicate. Unique index on `rawMessageRef`;
-  index on `receivedAt`.
+  receivedAt, bodyTruncated, isDuplicate, note (user free text, nullable).
+  Unique index on `rawMessageRef`; index on `receivedAt`.
 - `unrecognized_messages` — sender, body, receivedAt, smsId, rawMessageRef
   (unique), dismissed. Alerts are **soft-dismissed** (`dismissed = 1`) rather
   than deleted: the row stays so the unique `rawMessageRef` index stops the SMS
@@ -177,9 +177,10 @@ migrations shipped as `Migration` objects (no destructive fallbacks):
 
 Migrations: `MIGRATION_1_2` (dedup), `_2_3` (smsId), `_3_4` (raw columns),
 `_4_5` (drop rows missing raw columns), `_5_6` (message source metadata),
-`_6_7` (duplicate flag + timestamp index), `_7_8` (alert soft-dismiss flag).
+`_6_7` (duplicate flag + timestamp index), `_7_8` (alert soft-dismiss flag),
+`_8_9` (per-transaction note column).
 Every migration has a verification test (see `Migration6To7Test`,
-`Migration7To8Test`) asserting old-schema rows survive.
+`Migration7To8Test`, `Migration8To9Test`) asserting old-schema rows survive.
 
 ### Categorization
 
@@ -205,6 +206,14 @@ delete overrides. Writes go through
 normalize the merchant key, so a mapping applies to both future inserts and the
 backfill resolver. Renaming a row's merchant deletes the old key (the merchant
 is the primary key).
+
+**Renaming a transaction's merchant.** From the transaction detail screen,
+`TransactionRepository.renameMerchant(id, merchant)` updates the row's `merchant`
+and *also* upserts a `merchant_categories` override (new name → that
+transaction's current category), so the rename teaches future auto-categorization.
+It reuses `setMerchantCategory`, so the new key is normalized the same way; blank
+names are ignored. Notes are written by `TransactionRepository.setNote(id, note)`,
+which trims and stores blank as `null` (clearing the note).
 
 **Retroactive categorization.** Rows stored before categorization was wired keep
 `OTHER` until `TransactionRepository.recategorizeOtherTransactions()` runs (via
@@ -298,6 +307,10 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 - The detail screen special-cases `TransactionSource.MANUAL`: it shows "Manual"
   and drops the reference + "Original message" rows, since a hand-entered
   transaction has no source message.
+- The detail screen's overflow menu also offers **Rename merchant** and
+  **Add/Edit note**, opening `RenameMerchantDialog` / `TransactionNoteDialog`
+  (mirroring `MerchantCategoryEditorDialog`). The merchant header re-renders live
+  from the repository flow; a note shows in a `Note` card only when set.
 
 ---
 
@@ -336,8 +349,8 @@ Coverage layers:
   `MerchantCategoryRepositoryTest` covers the editor's data path (normalized
   writes, upsert/delete, re-classifying a transaction) and `MerchantKeyTest` the
   pure key normalization.
-- **Data** — `Migration5To6Test`, `Migration6To7Test`, `Migration7To8Test`
-  (row survival); `DuplicateDetectorTest`.
+- **Data** — `Migration5To6Test`, `Migration6To7Test`, `Migration7To8Test`,
+  `Migration8To9Test` (row survival); `DuplicateDetectorTest`.
 - **Reports** — `ReportAggregatorTest`.
 - **Privacy** — `NoRawBodyLoggingTest`, `PrivacyTest`, `HtmlToTextTest`.
 - **Workers** — `BackfillRawMessagesWorkerTest` (permission-revoke + unresolved
@@ -350,6 +363,11 @@ Coverage layers:
   (Robolectric + in-memory Room: stores a `MANUAL` row, the chosen category wins
   over the categorizer, blank amount/merchant block the save and refresh nothing);
   `AddTransactionScreenTest` (Compose, `src/testDebug`) drives the form end to end.
+- **Notes & rename** — `TransactionEditRepositoryTest` (Robolectric + in-memory
+  Room: `renameMerchant` updates the row and teaches the normalized mapping, blank
+  names are ignored; `setNote` trims and clears blank to null);
+  `TransactionDetailViewModelTest` covers the rename/note actions re-emitting
+  detail, and `TransactionDetailScreenTest` (Compose) the note section + dialogs.
 - **ViewModels** — `TransactionDetailViewModelTest`,
   `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
   `UnrecognizedViewModelTest`, `FormattersTest`.

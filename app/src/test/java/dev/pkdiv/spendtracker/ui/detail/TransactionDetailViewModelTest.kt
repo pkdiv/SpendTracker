@@ -121,6 +121,44 @@ class TransactionDetailViewModelTest : ViewModelTest() {
     }
 
     @Test
+    fun renameMerchant_updatesMerchantAndReemitsDetail() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val db = Room.inMemoryDatabaseBuilder(context, SpendTrackerDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        val dao = db.transactionDao()
+        val id = dao.insert(entity(rawBody = "Rs.100 debited"))
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
+        val vm = viewModel(id, repository, context)
+
+        vm.renameMerchant("Zomato")
+
+        val content = vm.uiState
+            .first { it is DetailUiState.Content && it.detail.merchant == "Zomato" } as DetailUiState.Content
+        assertEquals("Zomato", content.detail.merchant)
+        db.close()
+    }
+
+    @Test
+    fun setNote_persistsNoteAndReemitsDetail() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val db = Room.inMemoryDatabaseBuilder(context, SpendTrackerDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        val dao = db.transactionDao()
+        val id = dao.insert(entity(rawBody = "Rs.100 debited"))
+        val repository = TransactionRepository(dao, db.unrecognizedMessageDao(), db.merchantCategoryDao(), TransactionCategorizer())
+        val vm = viewModel(id, repository, context)
+
+        vm.setNote("Split with Ravi")
+
+        val content = vm.uiState
+            .first { it is DetailUiState.Content && it.detail.note == "Split with Ravi" } as DetailUiState.Content
+        assertEquals("Split with Ravi", content.detail.note)
+        db.close()
+    }
+
+    @Test
     fun unavailable_deleted_whenBodyNullAndPermissionGranted() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         ShadowApplication.getInstance().grantPermissions(Manifest.permission.READ_SMS)

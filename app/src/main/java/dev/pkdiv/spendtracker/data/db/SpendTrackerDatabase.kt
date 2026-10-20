@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -93,6 +93,16 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
         val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE unrecognized_messages ADD COLUMN dismissed INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /**
+         * Adds a user note per transaction. Non-destructive: the column is nullable,
+         * so existing rows carry null and no backfill is needed.
+         */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN note TEXT")
             }
         }
     }

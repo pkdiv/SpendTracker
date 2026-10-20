@@ -146,8 +146,16 @@ row overflow (three dots), you can:
 - **Show full message** / **Show less** — long messages are collapsed by
   default.
 - **Copy the message** to the clipboard.
+- **Rename merchant** — correct the merchant shown on the transaction. The new
+  name is also remembered as a merchant → category rule, so future transactions
+  from that merchant categorize automatically.
+- **Add note / Edit note** — attach a free-text note to the transaction (for
+  example, "split with Ravi" or a warranty reference). Open it again to change
+  it; save an empty note to remove it.
 
-Category and duplicate changes update the totals immediately.
+Rename and notes are available on the transaction's own screen (from its
+overflow, three dots). Category and duplicate changes update the totals
+immediately.
 
 ## Settings
 
@@ -171,7 +179,9 @@ merchant; use the trash icon to remove a mapping.
 Your mappings are matched by merchant name (case and surrounding spaces are
 ignored) and take priority over the built-in defaults. They apply to new
 transactions as they arrive and to past ones the app re-scans; transactions you
-have already re-categorized by hand are left untouched.
+have already re-categorized by hand are left untouched. Renaming a transaction's
+merchant (from its detail screen) also adds a mapping for the new name, so the
+rename improves categorization going forward.
 
 ## How categorization works
 

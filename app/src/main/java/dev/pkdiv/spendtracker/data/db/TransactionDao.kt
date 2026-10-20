@@ -37,6 +37,15 @@ interface TransactionDao {
     @Query("UPDATE transactions SET category = :category WHERE id = :id")
     suspend fun updateCategory(id: Long, category: TransactionCategory)
 
+    @Query("SELECT category FROM transactions WHERE id = :id")
+    suspend fun categoryById(id: Long): TransactionCategory?
+
+    @Query("UPDATE transactions SET merchant = :merchant WHERE id = :id")
+    suspend fun updateMerchant(id: Long, merchant: String)
+
+    @Query("UPDATE transactions SET note = :note WHERE id = :id")
+    suspend fun updateNote(id: Long, note: String?)
+
     @Query(
         """
         SELECT * FROM transactions

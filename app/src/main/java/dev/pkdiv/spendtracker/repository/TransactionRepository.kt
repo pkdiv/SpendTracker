@@ -162,6 +162,22 @@ class TransactionRepository @Inject constructor(
     suspend fun setDuplicate(id: Long, isDuplicate: Boolean) =
         transactionDao.setDuplicate(id, isDuplicate)
 
+    /**
+     * Renames the merchant on one transaction and teaches the app the new name ->
+     * this transaction's category, so future transactions from that merchant
+     * auto-categorize. Blank names are ignored.
+     */
+    suspend fun renameMerchant(id: Long, merchant: String) {
+        val name = merchant.trim()
+        if (name.isEmpty()) return
+        transactionDao.updateMerchant(id, name)
+        transactionDao.categoryById(id)?.let { setMerchantCategory(name, it) }
+    }
+
+    /** Sets or clears the free-text note on a transaction (blank/whitespace clears it to null). */
+    suspend fun setNote(id: Long, note: String?) =
+        transactionDao.updateNote(id, note?.trim()?.ifBlank { null })
+
     /** User-taught merchant -> category overrides, ready for the editor UI. */
     fun observeMerchantCategories(): Flow<List<MerchantCategoryMapping>> =
         merchantCategoryDao.observeAll().map { rows ->
@@ -239,6 +255,7 @@ class TransactionRepository @Inject constructor(
         body = rawBody,
         bodyTruncated = bodyTruncated ?: false,
         isDuplicate = isDuplicate,
+        note = note,
     )
 
     companion object {

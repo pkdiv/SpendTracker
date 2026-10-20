@@ -171,6 +171,16 @@
     <string name="detail_source_email">Email</string>
     <string name="detail_source_manual">Manual</string>
     <string name="detail_date">Date</string>
+    <string name="detail_rename_merchant">Rename merchant</string>
+    <string name="detail_rename_title">Rename merchant</string>
+    <string name="detail_rename_label">Merchant</string>
+    <string name="detail_note">Add note</string>
+    <string name="detail_note_edit">Edit note</string>
+    <string name="detail_note_title">Note</string>
+    <string name="detail_note_label">Note</string>
+    <string name="detail_note_hint">Add a note for this transaction</string>
+    <string name="detail_edit_save">Save</string>
+    <string name="detail_edit_cancel">Cancel</string>
     <string name="detail_unknown_sender">Unknown sender</string>
     <string name="detail_reveal_code">Reveal code</string>
     <string name="detail_hide_code">Hide code</string>

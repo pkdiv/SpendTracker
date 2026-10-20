@@ -114,10 +114,22 @@ Priority tiers:
     (pure), `AddTransactionViewModelTest` (incl. chosen-category-wins) and
     `AddTransactionScreenTest` (Compose).
 
-- [ ] **Transaction notes / rename merchant**
+- [x] **Transaction notes / rename merchant**
   - Let users add a free-text note and/or rename a merchant on a transaction;
     feed the rename into the user `merchant_categories` mapping to improve
     future auto-categorization.
+  - Done: the detail screen's overflow opens `RenameMerchantDialog` /
+    `TransactionNoteDialog` (`ui/detail/`), mirroring `MerchantCategoryEditorDialog`.
+    Notes are a new nullable `note` column (schema **v9**, `MIGRATION_8_9`, no
+    backfill needed) rendered in a `Note` card on the detail screen only — list
+    rows are unchanged. A rename updates the row and upserts a
+    `merchant_categories` override (new name → the transaction's category,
+    normalized through the shared `setMerchantCategory` path) so future
+    transactions from that merchant auto-categorize; blank names are ignored.
+    Writes go through `TransactionRepository.renameMerchant` / `setNote` (the
+    latter trims and clears blank to `null`). Covered by `Migration8To9Test`,
+    `TransactionEditRepositoryTest`, `TransactionDetailViewModelTest`, and
+    `TransactionDetailScreenTest` (Compose, `src/testDebug`).
 
 - [ ] **Subscriptions / recurring-spend detection (passive)**
   - Detect recurring merchants (same amount + merchant at regular cadence) as a

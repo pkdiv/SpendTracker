@@ -32,6 +32,7 @@ object AppModule {
                 SpendTrackerDatabase.MIGRATION_5_6,
                 SpendTrackerDatabase.MIGRATION_6_7,
                 SpendTrackerDatabase.MIGRATION_7_8,
+                SpendTrackerDatabase.MIGRATION_8_9,
             )
             .build()
 

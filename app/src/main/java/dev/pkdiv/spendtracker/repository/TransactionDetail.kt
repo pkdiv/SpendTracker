@@ -28,4 +28,5 @@ data class TransactionDetail(
     val body: String?,
     val bodyTruncated: Boolean,
     val isDuplicate: Boolean,
+    val note: String? = null,
 )

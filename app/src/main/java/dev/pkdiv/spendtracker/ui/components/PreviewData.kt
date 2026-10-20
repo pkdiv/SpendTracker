@@ -130,6 +130,8 @@ object PreviewData {
         isDuplicate = false,
     )
 
+    val notedDetail: TransactionDetail = smsDetail.copy(note = "Split with Ravi, settled later")
+
     val manualDetail: TransactionDetail = TransactionDetail(
         id = 3,
         amount = BigDecimal("450.00"),

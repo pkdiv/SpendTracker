@@ -51,6 +51,16 @@ class TransactionDetailViewModel @Inject constructor(
         viewModelScope.launch { transactionRepository.setDuplicate(transactionId, isDuplicate) }
     }
 
+    /** Renames the merchant, also teaching the merchant->category mapping. */
+    fun renameMerchant(merchant: String) {
+        viewModelScope.launch { transactionRepository.renameMerchant(transactionId, merchant) }
+    }
+
+    /** Sets or clears the free-text note (null/blank clears it). */
+    fun setNote(note: String?) {
+        viewModelScope.launch { transactionRepository.setNote(transactionId, note) }
+    }
+
     private fun unavailableReason(source: TransactionSource): MessageUnavailableReason {
         if (source == TransactionSource.SMS) {
             val granted = ContextCompat.checkSelfPermission(

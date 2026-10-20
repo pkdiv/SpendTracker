@@ -36,4 +36,6 @@ data class TransactionEntity(
     val bodyTruncated: Boolean? = null,
     @ColumnInfo(defaultValue = "0")
     val isDuplicate: Boolean = false,
+    // User-added free-text note (schema v9). Null when unset.
+    val note: String? = null,
 )

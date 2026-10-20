@@ -13,15 +13,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +69,11 @@ fun TransactionDetailScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     var menuExpanded by remember { mutableStateOf(false) }
+    var showRename by remember { mutableStateOf(false) }
+    var showNote by remember { mutableStateOf(false) }
+
+    val detail = (state as? DetailUiState.Content)?.detail
+        ?: (state as? DetailUiState.Unavailable)?.detail
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -81,8 +89,6 @@ fun TransactionDetailScreen(
                     }
                 },
                 actions = {
-                    val detail = (state as? DetailUiState.Content)?.detail
-                        ?: (state as? DetailUiState.Unavailable)?.detail
                     val body = detail?.body
                     IconButton(onClick = { menuExpanded = true }) {
                         Icon(
@@ -120,6 +126,28 @@ fun TransactionDetailScreen(
                                 detail?.let { viewModel.setDuplicate(!it.isDuplicate) }
                             },
                         )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.detail_rename_merchant)) },
+                            enabled = detail != null,
+                            onClick = {
+                                menuExpanded = false
+                                showRename = true
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(
+                                        if (detail?.note != null) R.string.detail_note_edit else R.string.detail_note,
+                                    ),
+                                )
+                            },
+                            enabled = detail != null,
+                            onClick = {
+                                menuExpanded = false
+                                showNote = true
+                            },
+                        )
                     }
                 },
             )
@@ -142,10 +170,32 @@ fun TransactionDetailScreen(
             )
         }
     }
+
+    if (showRename && detail != null) {
+        RenameMerchantDialog(
+            initial = detail.merchant,
+            onDismiss = { showRename = false },
+            onSave = { name ->
+                viewModel.renameMerchant(name)
+                showRename = false
+            },
+        )
+    }
+
+    if (showNote && detail != null) {
+        TransactionNoteDialog(
+            initial = detail.note,
+            onDismiss = { showNote = false },
+            onSave = { note ->
+                viewModel.setNote(note)
+                showNote = false
+            },
+        )
+    }
 }
 
 @Composable
-private fun DetailContent(
+internal fun DetailContent(
     detail: TransactionDetail,
     modifier: Modifier = Modifier,
     unavailableReason: MessageUnavailableReason? = null,
@@ -161,6 +211,14 @@ private fun DetailContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         ParsedFieldsSection(detail)
+
+        if (detail.note != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SectionHeader(title = stringResource(R.string.detail_note_title))
+
+            NoteCard(note = detail.note)
+        }
 
         // A hand-entered transaction has no source message to show.
         if (detail.source != TransactionSource.MANUAL) {
@@ -316,6 +374,90 @@ private fun sourceLabel(source: TransactionSource): String = when (source) {
     TransactionSource.MANUAL -> stringResource(R.string.detail_source_manual)
 }
 
+@Composable
+private fun NoteCard(note: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Text(
+            text = note,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Composable
+internal fun RenameMerchantDialog(
+    initial: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var merchant by remember { mutableStateOf(initial) }
+    val trimmed = merchant.trim()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.detail_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = merchant,
+                onValueChange = { merchant = it },
+                label = { Text(stringResource(R.string.detail_rename_label)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(trimmed) },
+                enabled = trimmed.isNotEmpty() && trimmed != initial,
+            ) {
+                Text(stringResource(R.string.detail_edit_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.detail_edit_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+internal fun TransactionNoteDialog(
+    initial: String?,
+    onDismiss: () -> Unit,
+    onSave: (String?) -> Unit,
+) {
+    var note by remember { mutableStateOf(initial.orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.detail_note_title)) },
+        text = {
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it },
+                label = { Text(stringResource(R.string.detail_note_label)) },
+                placeholder = { Text(stringResource(R.string.detail_note_hint)) },
+                minLines = 3,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(note.trim().ifBlank { null }) }) {
+                Text(stringResource(R.string.detail_edit_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.detail_edit_cancel))
+            }
+        },
+    )
+}
+
 @Preview(name = "Content SMS", showBackground = true)
 @Preview(name = "Content SMS (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -349,6 +491,17 @@ private fun DetailContentManualPreview() {
     }
 }
 
+@Preview(name = "Content with note", showBackground = true)
+@Preview(name = "Content with note (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DetailContentNotedPreview() {
+    SpendTrackerTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            DetailContent(detail = PreviewData.notedDetail)
+        }
+    }
+}
+
 @Preview(name = "Unavailable", showBackground = true)
 @Preview(name = "Unavailable (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -371,5 +524,23 @@ private fun DetailLoadingPreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             DetailSkeleton()
         }
+    }
+}
+
+@Preview(name = "Rename dialog", showBackground = true)
+@Preview(name = "Rename dialog (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RenameMerchantDialogPreview() {
+    SpendTrackerTheme {
+        RenameMerchantDialog(initial = "Swiggy", onDismiss = {}, onSave = {})
+    }
+}
+
+@Preview(name = "Note dialog", showBackground = true)
+@Preview(name = "Note dialog (dark)", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TransactionNoteDialogPreview() {
+    SpendTrackerTheme {
+        TransactionNoteDialog(initial = "Split with Ravi, settled later", onDismiss = {}, onSave = {})
     }
 }

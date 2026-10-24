@@ -4,7 +4,7 @@ Everything required to publish Spend Tracker to Google Play, in the order it has
 to happen. Check items off as they land; do not submit until every **P0** item is
 green.
 
-Verified against the codebase on **2026-10-20**. Play policy deadlines quoted
+Verified against the codebase on **2026-10-24**. Play policy deadlines quoted
 here are current as of that date — re-check the linked policy pages before
 submitting.
 
@@ -12,24 +12,37 @@ submitting.
 
 ## 0. Release gate (current status)
 
-**Verdict: not submittable yet.** These are hard blockers, not polish:
+**Verdict: not submittable yet.** The in-repo P0 blockers are fixed; the
+remaining P0s are Play Console / hosting actions that cannot be done from the
+repository.
 
-- [ ] **P0 — Target API 36.** `app/build.gradle.kts` has `compileSdk = 35` and
-      `targetSdk = 35`. New apps must target Android 16 (API 36) from 31 Aug 2026
-      (extension window to 1 Nov 2026, still at API 36).
-- [ ] **P0 — Ship an AAB.** CI builds `assembleRelease` and publishes an APK.
-      New apps must be published as an Android App Bundle (`bundleRelease`).
-- [ ] **P0 — Privacy policy.** There is no privacy policy anywhere in the repo or
-      app. Play requires a public URL for all apps, and it is mandatory for
-      restricted permissions like SMS.
-- [ ] **P0 — Prominent disclosure + consent before the SMS prompt.** Strings
-      `permission_sms_rationale` / `permission_notification_rationale` exist in
-      `res/values/strings.xml` but are never rendered. `MainActivity.onCreate`
-      requests SMS immediately on first launch.
+- [x] **P0 — Target API 36.** `app/build.gradle.kts` now sets
+      `compileSdk = 36` and `targetSdk = 36` (SDK platform 36 installed). Still
+      required: run the Android 16 behavior-change pass on an API 36 device
+      (§2).
+- [x] **P0 — Ship an AAB.** CI now runs `bundleRelease` and attaches
+      `app/build/outputs/bundle/release/*.aab` to the GitHub Release (the APK is
+      kept alongside it for sideloading).
+- [x] **P0 — Privacy policy written and linked in-app.** The policy lives at
+      [`privacy-policy.md`](./privacy-policy.md) and is linked from
+      **Settings › About › Privacy policy** to
+      `https://pkdiv.com/SpendTracker/privacy-policy` (the `privacy_policy_url`
+      string). **Remaining manual step:** deploy the rendered policy at that
+      path and confirm the URL loads.
+- [x] **P0 — Prominent disclosure + consent before the SMS prompt.** A first-run
+      `DisclosureScreen` (`ui/disclosure/`) is rendered before any runtime
+      permission dialog. SMS is requested only from its affirmative action;
+      "Continue without SMS" leaves the app usable. The notification rationale
+      is shown once before `POST_NOTIFICATIONS`. Consent is persisted in
+      `SettingsStore`.
 - [ ] **P0 — Permissions Declaration Form + demo video** for SMS access, with the
-      "SMS-based money management" use case.
-- [ ] **P0 — Unique `versionCode` per upload.** Hardcoded to `1` while the repo is
-      tagged to `v0.11.0`; `versionName` is hardcoded to `0.1.0`.
+      "SMS-based money management" use case. Play Console only — see §3.3. The
+      in-app disclosure and demo steps are now in place for the recording.
+- [x] **P0 — Unique `versionCode` per upload.** `versionCode`/`versionName` are
+      derived from the `vX.Y.Z` tag (or `-PversionName=X.Y.Z`):
+      `versionCode = X*10000 + Y*100 + Z`, `versionName = X.Y.Z`. The build fails
+      when the version can't be parsed. The release build no longer falls back to
+      the debug keystore.
 - [ ] **P1 — Remove the unused `INTERNET` permission** until email ingestion
       ships (it contradicts the minimal-permissions claim).
 - [ ] **P1 — Stop importing every SMS.** `SmsReader.backfill()` reads the whole
@@ -49,9 +62,11 @@ submitting.
 - [ ] Do **not** claim "UPI notifications" unless `NotificationListenerService` is
       added — the current path reads SMS only. Update `README.md` and
       `docs/USER_GUIDE.md` accordingly.
-- [ ] Define the public version scheme. Recommended: tags are the source of truth
+- [x] Define the public version scheme. Tags are the source of truth
       (`vX.Y.Z`), with `versionCode = X*10000 + Y*100 + Z` and
-      `versionName = X.Y.Z` injected at build time.
+      `versionName = X.Y.Z` injected at build time by `app/build.gradle.kts`.
+      CI validates the tag (or the `workflow_dispatch` version input) and passes
+      it as `-PversionName`.
 - [ ] Confirm `applicationId = dev.pkdiv.spendtracker` is final; it is immutable
       on Play after the first upload.
 
@@ -59,33 +74,42 @@ submitting.
 
 ## 2. Build and signing
 
-- [ ] Bump `compileSdk` and `targetSdk` to **36** in `app/build.gradle.kts`;
-      update the Android SDK/AGP toolchain if required. Keep `minSdk = 26`.
+- [x] Bump `compileSdk` and `targetSdk` to **36** in `app/build.gradle.kts`;
+      keep `minSdk = 26`. AGP 8.13.2 builds against the installed
+      `platforms;android-36`.
 - [ ] Address Android 16 behavior changes (edge-to-edge enforcement, predictive
       back, notification/permission changes) and test on an API 36 device or
-      emulator.
-- [ ] Replace `assembleRelease` with `bundleRelease` in CI
+      emulator. Edge-to-edge is already enabled in `MainActivity`; predictive
+      back uses Navigation Compose defaults.
+- [x] Replace `assembleRelease` with `bundleRelease` in CI
       (`.github/workflows/build-and-publish.yml`) and attach
-      `app/build/outputs/bundle/release/*.aab`.
-- [ ] Derive `versionCode`/`versionName` from the pushed tag (`v*`) or an explicit
-      Gradle property; fail the build if the tag cannot be parsed.
-- [ ] Keep `KEYSTORE_PATH`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` in CI
+      `app/build/outputs/bundle/release/*.aab` (the APK is still attached too,
+      for sideloading).
+- [x] Derive `versionCode`/`versionName` from the pushed tag (`v*`) or an
+      explicit `-PversionName`; the build fails if the version cannot be parsed.
+- [x] Keep `KEYSTORE_PATH`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` in CI
       secrets only; never commit the keystore.
-- [ ] Remove or hard-fail the **debug-keystore fallback** for release builds in
-      `app/build.gradle.kts`. A locally built "release" APK must never be
-      debug-signed by accident.
+- [x] Remove the **debug-keystore fallback** for release builds in
+      `app/build.gradle.kts`. Without `KEYSTORE_PATH` a release build is now
+      unsigned rather than debug-signed.
 - [ ] Enroll in **Play App Signing** on first upload; store the upload key and
       credentials securely. The upload key is not the app signing key.
-- [ ] Run `./gradlew test bundleRelease --no-daemon` locally with JDK 21 and
+- [x] Run `./gradlew test bundleRelease --no-daemon` locally with JDK 21 and
       confirm `BUILD SUCCESSFUL` plus zero failures in
-      `app/build/test-results/testDebugUnitTest/*.xml`.
+      `app/build/test-results/testDebugUnitTest/*.xml`. Verified 2026-10-24:
+      151 debug / 121 release tests, 0 failures; `app-release.aab` built with
+      `versionCode=1100`, `versionName=0.11.0`.
 - [ ] Add `./gradlew lint` (or `lintRelease`) to CI and resolve fatal issues.
-      There is currently no lint report in the repo.
+      Fatal issues resolved 2026-10-24 (`./gradlew lint` is green); adding the
+      step to CI remains.
 - [ ] Optional: enable R8 (`isMinifyEnabled = true`) with keep rules; currently
       release builds are unminified.
-- [ ] Verify the release AAB contains no debug-only components, no test sources,
+- [x] Verify the release AAB contains no debug-only components, no test sources,
       and `android:allowBackup` plus the backup exclusion rules are as intended
       (`res/xml/backup_rules.xml`, `res/xml/data_extraction_rules.xml`).
+      Verified on the release APK: `allowBackup=true` with both
+      `fullBackupContent` and `dataExtractionRules` wired, and no `debuggable`
+      flag. (The AAB's only `*test*` entries are AndroidX library resources.)
 
 ---
 
@@ -93,9 +117,11 @@ submitting.
 
 ### 3.1 Privacy policy
 
-- [ ] Write and host a public privacy policy (Play requires a URL; GitHub Pages or
-      a simple static site is fine).
-- [ ] Cover, at minimum:
+- [x] Write the policy — [`privacy-policy.md`](./privacy-policy.md) — and
+      publish it at the public URL `https://pkdiv.com/SpendTracker/privacy-policy`
+      (Play requires a URL; the app links to the same URL). Publishing the
+      rendered page at that path is a manual deploy step.
+- [x] Cover, at minimum:
   - what is accessed (SMS messages, notification permission, device storage);
   - that parsing and storage are **on-device**, and no message content is
     transmitted off the device;
@@ -105,26 +131,28 @@ submitting.
   - retention (data lives until the user clears app data or uninstalls);
   - how to delete data (uninstall / clear app data; no account exists);
   - third parties (none) and analytics/ads (none);
-  - contact details and effective date.
+  - contact details (GitHub issues) and effective date.
 - [ ] Link the policy in the Play listing **and** inside the app
-      (Settings › About is the natural place).
-- [ ] Make the policy match the actual behavior — especially the current
-      full-inbox import into Alerts.
+      (Settings › About). In-app link: **done**. Play listing: manual.
+- [x] Make the policy match the actual behavior — it explicitly discloses the
+      on-device Alerts queue and the stored source-message text.
 
 ### 3.2 Prominent disclosure and consent
 
-- [ ] Add a first-run disclosure screen **before** the runtime permission dialog.
-      It must state what data is accessed, why, and that it stays on-device, and
-      require an affirmative action (e.g. "Allow SMS access"). Do not bury it in
-      the privacy policy or the permission system dialog.
-- [ ] Request `READ_SMS`/`RECEIVE_SMS` only after that consent, and only when the
-      user is about to use SMS-based tracking.
-- [ ] Ensure the app remains usable if SMS is denied (manual entry already works);
+- [x] Add a first-run disclosure screen **before** the runtime permission dialog.
+      `ui/disclosure/DisclosureScreen` states what data is accessed, why, and
+      that it stays on-device, and requires the affirmative **Allow SMS access**
+      action. **Continue without SMS** keeps the app usable.
+- [x] Request `READ_SMS`/`RECEIVE_SMS` only after that consent, and only when the
+      user is about to use SMS-based tracking (`MainActivity.requestSmsPermissions`
+      is reachable only from the disclosure's consent action).
+- [x] Ensure the app remains usable if SMS is denied (manual entry already works);
       never hard-block the app behind the permission.
-- [ ] Show a similar, contextual explanation before requesting
-      `POST_NOTIFICATIONS` on Android 13+.
-- [ ] Keep the disclosure text in `strings.xml` (the existing unused rationale
-      strings are a good starting point).
+- [x] Show a similar, contextual explanation before requesting
+      `POST_NOTIFICATIONS` on Android 13+ (`NotificationRationaleDialog`,
+      persisted as shown so it is not re-asked every launch).
+- [x] Keep the disclosure text in `strings.xml` (`permission_*_rationale`,
+      `disclosure_*`, `notification_rationale_*`).
 
 ### 3.3 Permissions Declaration Form
 

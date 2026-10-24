@@ -103,6 +103,9 @@
     <string name="settings_merchant_categories_hint">Teach the app how to categorize a merchant</string>
     <string name="settings_export">Export</string>
     <string name="settings_export_hint">Save or share a CSV of your transactions</string>
+    <string name="settings_privacy_policy">Privacy policy</string>
+    <string name="settings_privacy_policy_hint">How your data is handled</string>
+    <string name="privacy_policy_url" translatable="false">https://pkdiv.com/SpendTracker/privacy-policy</string>
     <string name="settings_sms_permission">SMS access</string>
     <string name="settings_notification_permission">Notifications</string>
     <string name="settings_permission_granted">Granted</string>
@@ -226,6 +229,19 @@
 
     <string name="permission_sms_rationale">Spend Tracker reads your transaction SMS messages to detect spend. Messages are parsed on-device and never leave your phone.</string>
     <string name="permission_notification_rationale">Notifications are used for your end-of-day spend report.</string>
+
+    <!-- First-run prominent disclosure (required before the SMS permission prompt) -->
+    <string name="disclosure_title">Before you start</string>
+    <string name="disclosure_message">Spend Tracker turns your bank and UPI transaction messages into a spending summary. Everything stays on this device — no account, no cloud, no server.</string>
+    <string name="disclosure_sms_title">Read your SMS messages</string>
+    <string name="disclosure_notifications_title">Send notifications</string>
+    <string name="disclosure_allow_sms">Allow SMS access</string>
+    <string name="disclosure_continue_without_sms">Continue without SMS</string>
+    <string name="disclosure_without_sms_hint">You can still add transactions by hand and view your reports without SMS access.</string>
+    <string name="notification_rationale_title">Turn on notifications?</string>
+    <string name="notification_rationale_body">Spend Tracker uses one local notification a day for your end-of-day spend report. Nothing is sent off your device.</string>
+    <string name="notification_rationale_allow">Allow notifications</string>
+    <string name="notification_rationale_not_now">Not now</string>
 
     <string name="notification_channel_eod">End of day reports</string>
     <string name="notification_channel_eom">End of month reports</string>

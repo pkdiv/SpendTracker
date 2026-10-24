@@ -24,24 +24,33 @@ The technical architecture is described in
 
 ## What it needs
 
-Spend Tracker asks for three permissions, all with plain-language reasons:
+Spend Tracker asks for two permissions, and explains each in plain language
+before the Android prompt:
 
-- **SMS access** — *Required.* Reads transaction alerts from your inbox so it can
-  parse and store them. Without this it can't do anything.
-- **Notifications** — *Required for the daily summary.* Needed on Android 13+; the
-  EOD (end-of-day) report won't post without it.
-- **Internet** — *Declared but only intended for the future email feature.* No
-  message content is ever sent over the network. Parsing is 100% on-device.
+- **SMS access** — *Optional, but needed for automatic tracking.* Reads
+  transaction alerts from your inbox so it can parse and store them. Without it
+  the app still works: add transactions by hand and view your reports.
+- **Notifications** — *Needed for the daily summary.* On Android 13+ the
+  end-of-day (EOD) report can't post without it.
+- **Internet** — *Declared in the app but not used today.* It is reserved for a
+  future email import. No message content is ever sent over the network; parsing
+  is 100% on-device.
 
-You'll be prompted for SMS and notification permissions the first time you open
-the app. You can review or re-grant them later in **Settings › Permissions**.
+The **first time you open the app**, a disclosure screen explains what is
+accessed, why, and that it stays on your phone. Automatic tracking is switched on
+only when you tap **Allow SMS access**. Tap **Continue without SMS** to skip it and
+use the app manually. Notification access is explained in a second, short prompt.
+You can review or re-grant either permission later in **Settings › Permissions**
+(which opens the system app settings).
 
 ## Getting started
 
-1. Install the app (APK is published per release).
-2. Open it and grant the requested permissions.
-3. It will immediately scan your existing inbox and import past transaction
-   SMS. New transactions are picked up in real time as they arrive.
+1. Install the app (the release page publishes both an app bundle and a
+   sideloadable APK).
+2. Open it and read the first screen. Tap **Allow SMS access** to enable
+   automatic tracking, or **Continue without SMS** to add transactions by hand.
+3. With SMS access granted, it will scan your existing inbox and import past
+   transaction SMS. New transactions are picked up in real time as they arrive.
 4. Visit the **Home** tab to see this month's spend.
 
 ## Home
@@ -167,7 +176,9 @@ In Settings you can:
 - **Merchant categories** — teach the app which category a merchant belongs to
   (see *How categorization works*).
 - **Export** — save or share a CSV of your transactions (see *Export*).
-- Review the status of **SMS access** and **notifications** permissions.
+- Review the status of **SMS access** and **notifications** permissions — tap
+  either row to open the system app settings and change it.
+- Open the **Privacy policy** under **About**.
 - See the installed **app version** under **About** at the bottom of the screen.
 
 ## Merchant categories
@@ -222,11 +233,16 @@ backup.
 
 Spend Tracker is built around these guarantees:
 
+- **You choose before anything is read.** A first-run disclosure explains the SMS
+  access, and the permission is requested only after you tap **Allow SMS access**.
+  Skipping it leaves the app fully usable.
 - **Nothing leaves your phone.** There is no account, no sign-in, no server
   syncing your data. Message bodies and parsed transactions are stored only in a
   local database on the device.
 - **Parsing is on-device and rule-based.** No message content is sent to any LLM
   or cloud API.
+- **Alerts stay local too.** Messages the app couldn't parse wait in the Alerts
+  tab only on this device; they are never uploaded.
 - **Backups exclude your data.** The local database is explicitly excluded from
   Android's cloud backup *and* device transfer, so resetting or moving your phone
   won't upload your transactions — and won't restore them either. Keep that in mind if you change phones.
@@ -238,11 +254,15 @@ Spend Tracker is built around these guarantees:
   transactions (never message bodies) and opens the system share sheet. The app
   sends nothing — it goes only where you choose.
 
+The full policy is in the repository at
+[`privacy-policy.md`](./privacy-policy.md) and is linked from **Settings › About ›
+Privacy policy**.
+
 ## Tips
 
-- If a transaction message is missing its full text in the app, pull down in
-  Home and tap **Sync** — the app periodically re-fetches bodies that couldn't
-  be stored on first read (for example, when the message was very long).
+- If a transaction message is missing its full text in the app, tap the **Sync**
+  button in Home — the app periodically re-fetches bodies that couldn't be stored
+  on first read (for example, when the message was very long).
 - Duplicate detection ignores the same sender + amount + direction + merchant
   within a 2-minute window. If you see a *Duplicate* badge you didn't expect,
   remove the duplicate mark from the transaction detail.

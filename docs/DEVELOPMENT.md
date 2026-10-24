@@ -29,7 +29,7 @@ from backup.
 | Local storage      | Room (SQLite); Preferences DataStore for settings           |
 | Background work    | WorkManager (Hilt workers)                                 |
 | Coroutines         | `kotlinx.coroutines` + `Flow` (no callbacks / no RxJava)   |
-| MinSdk / target    | 26 / 35                                                    |
+| MinSdk / target    | 26 / 36                                                    |
 | Build              | AGP 8.13 / Gradle 8.13, JDK 21, `jvmTarget = 17`            |
 
 `libs.versions.toml` is the single source of truth for dependency versions.
@@ -87,6 +87,7 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   WidgetRefresher.kt          refresh seam bound to WidgetScheduler
   ui/             SpendTrackerApp.kt          NavHost + bottom bar (hoisted nav callbacks)
                   Formatters.kt              INR formatting (Indian grouping), date labels
+                  disclosure/                first-run prominent disclosure + notification rationale
                   components/              stateless composables (hoisted state)
                   home/, detail/, reports/, settings/, unrecognized/,
                   history/                 Activity list + HistoryFilters/HistoryFilterSheet
@@ -329,6 +330,11 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 
 - **Local-first.** No network is used for parsing. `INTERNET` is declared only
   for the future email fetch path; no message content is ever sent over it.
+- **Consent before permissions.** `MainActivity` renders `DisclosureScreen`
+  (`ui/disclosure/`) before any runtime permission dialog and requests
+  `READ_SMS`/`RECEIVE_SMS` only from its **Allow SMS access** action. Declining
+  keeps the app usable. `DisclosureViewModel` persists both the disclosure and
+  the one-time notification rationale in `SettingsStore`.
 - **No logging of raw message content.** `NoRawBodyLoggingTest` scans the source
   tree for `Log.*`/`Timber`/`println` calls that reference `rawBody`/`rawSender`
   and fails the build if any appear.
@@ -341,9 +347,11 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
   (never raw message content) into the app **cache** (never backed up), exposed to
   the system share sheet through a `FileProvider`. The app performs no upload — the
   user picks the destination — and the flow only runs on a deliberate tap.
-- **Permissions** are runtime-requested (`POST_NOTIFICATIONS` on Android 13+) and
-  surfaced with rationale strings; see §3 of `AGENTS.md` for the full list —
-  adding one requires updating the permission-rationale screen.
+- **Privacy policy.** `docs/privacy-policy.md` is the public policy text; the app
+  links to its hosted URL (`privacy_policy_url`) from **Settings › About**.
+- **Permissions** are runtime-requested after the disclosure (`POST_NOTIFICATIONS`
+  on Android 13+ after its own rationale); see §3 of `AGENTS.md` for the full
+  list — adding one requires updating the permission-rationale screen.
 
 ---
 
@@ -392,6 +400,9 @@ Coverage layers:
   names are ignored; `setNote` trims and clears blank to null);
   `TransactionDetailViewModelTest` covers the rename/note actions re-emitting
   detail, and `TransactionDetailScreenTest` (Compose) the note section + dialogs.
+- **Consent** — `DisclosureScreenTest` (Compose, `src/testDebug`) covers the
+  disclosure contents, the affirmative **Allow SMS access** callback,
+  **Continue without SMS**, and the notification rationale dialog.
 - **ViewModels** — `TransactionDetailViewModelTest`,
   `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
   `UnrecognizedViewModelTest`, `FormattersTest`.
@@ -423,14 +434,16 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
 
 - Room exports schemas to `app/schemas/` (already `.gitignore`d appropriately via
   `room.schemaLocation`).
-- Release tagging & CI: push a `v*` tag or use `workflow_dispatch` on
-  `build-and-publish.yml`. CI builds, tests, decodes the signing keystore from
-  repo secrets (never committed), builds `assembleRelease`, and attaches the APK
-  to a GitHub Release named after the tag.
-- A versioned GitHub Release with the APK attached is created on each `v*` tag
-  push. (A `main-latest` prerelease job is configured but its
-  `if: github.ref == 'refs/heads/main'` never matches the tag-only trigger, so it
-  doesn't currently fire on branch pushes — see `AGENTS.md` §4 on CI cadence.)
+- Versioning: a `vX.Y.Z` tag is the source of truth. `app/build.gradle.kts`
+  derives `versionName = X.Y.Z` and `versionCode = X*10000 + Y*100 + Z` from the
+  nearest git tag, or from `-PversionName=X.Y.Z`. The build fails when the
+  version can't be parsed, so a `versionCode` can never silently be reused.
+- Release tagging & CI: push a `v*` tag or run `workflow_dispatch` (with a
+  `version` input) on `build-and-publish.yml`. CI builds and tests, decodes the
+  signing keystore from repo secrets (never committed), builds
+  `bundleRelease` + `assembleRelease`, and attaches the AAB and APK to a GitHub
+  Release named after the tag. Without `KEYSTORE_PATH`, release artifacts are
+  unsigned — the debug-keystore fallback has been removed.
 - **Never** commit signing credentials or a `signingConfigs` block with inline
   secrets.
 
@@ -449,6 +462,7 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
   no sync worker, IMAP fallback not started.
 - **Teach-a-rule** flow (regex builder / manual tagging) for the Unrecognized
   queue is not implemented.
-- `versionName` is static (`0.1.0`); tags drive releases and do not auto-sync
-  into the manifest version. Settings › **About** shows whatever `versionName`
-  the build produced (read from the package manager, `BuildConfig` is off).
+- The public privacy-policy URL (`https://pkdiv.com/SpendTracker/privacy-policy`)
+  is a deploy step outside this repo: the policy text lives in
+  `docs/privacy-policy.md`, and `privacy_policy_url` must keep pointing at the
+  page actually serving it.

@@ -6,16 +6,43 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+/**
+ * Versioning: a `vX.Y.Z` release tag is the source of truth. CI passes it as
+ * `-PversionName=X.Y.Z`; local builds fall back to the nearest git tag. The
+ * build fails when no `X.Y.Z` version can be resolved, so an upload can never
+ * silently reuse a versionCode.
+ */
+val appVersionName: String = run {
+    val explicit = providers.gradleProperty("versionName").orNull
+        ?: providers.environmentVariable("VERSION_NAME").orNull
+    val resolved = explicit ?: providers.exec {
+        commandLine("git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*")
+        workingDir = rootDir
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim()
+    resolved.removePrefix("v")
+}
+
+val appVersionCode: Int = run {
+    val match = Regex("""^(\d+)\.(\d+)\.(\d+)$""").matchEntire(appVersionName)
+        ?: error(
+            "Cannot derive a version from '$appVersionName'. Release builds must be " +
+                "driven by a vX.Y.Z tag (or -PversionName=X.Y.Z).",
+        )
+    val (major, minor, patch) = match.destructured
+    major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt()
+}
+
 android {
     namespace = "dev.pkdiv.spendtracker"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "dev.pkdiv.spendtracker"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 36
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,7 +70,7 @@ android {
             signingConfig = if (releaseKeystorePath != null) {
                 signingConfigs.getByName("release")
             } else {
-                signingConfigs.getByName("debug")
+                null
             }
         }
     }
@@ -74,6 +101,11 @@ android {
 
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+        // Robolectric's Android 16 (SDK 36) sandbox reads FileDescriptor internals.
+        jvmArgs(
+            "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+        )
     }
 
     packaging {

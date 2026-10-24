@@ -10,11 +10,13 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 
 - **User guide** — see [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md).
 - **Developer guide** — see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+- **Privacy policy** — see [`docs/privacy-policy.md`](docs/privacy-policy.md).
 - **Play Store release checklist** — see [`docs/PLAY_STORE_RELEASE.md`](docs/PLAY_STORE_RELEASE.md).
 - **Project constraints & conventions** — see [`AGENTS.md`](AGENTS.md).
 
 ## Features
 
+- **Consent-first onboarding** — a prominent in-app disclosure before the SMS permission prompt; the app stays usable if SMS is skipped
 - **On-device SMS/UPI parsing** — rule-based, not an LLM, so results are deterministic and explainable
 - **Bank-specific rules** — HDFC, ICICI, SBI, and generic UPI are supported today
 - **Local-first storage** — Room for transactions, DataStore for settings
@@ -44,7 +46,7 @@ Everything runs on-device. Message content is never sent to a backend, an analyt
 ## Requirements
 
 - JDK 21 — AGP 8.13 does not support JDK 24/25, so newer Homebrew default JDKs will fail
-- Android SDK 35
+- Android SDK 36 (`compileSdk`/`targetSdk` are 36; `minSdk` is 26)
 
 ## Build
 
@@ -98,7 +100,7 @@ The core SMS → parse → store → report flow is implemented and covered by u
 
 ## Releases
 
-Pushing a `v*` tag (for example `v0.1.0`) — or a manual `workflow_dispatch` run — triggers the GitHub Actions workflow to build, run tests, and attach a release APK to a GitHub Release. The release APK is signed in CI from a keystore stored as repository secrets.
+Pushing a `v*` tag (for example `v0.12.0`) — or a manual `workflow_dispatch` run with a version — triggers the GitHub Actions workflow to build, run tests, and attach both an Android App Bundle (`.aab`, for Google Play) and a sideloadable APK to a GitHub Release. The tag is the source of truth: `versionName` and `versionCode` are derived from it at build time. Release artifacts are signed in CI from a keystore stored as repository secrets.
 
 ## Contributing
 

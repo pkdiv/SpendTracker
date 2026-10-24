@@ -1,5 +1,9 @@
 package dev.pkdiv.spendtracker.ui.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
@@ -33,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +54,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showTimePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -124,16 +131,33 @@ fun SettingsScreen(
                 icon = Icons.Filled.Sms,
                 title = stringResource(R.string.settings_sms_permission),
                 granted = state.smsPermissionGranted,
+                modifier = Modifier.clickable { openAppSettings(context) },
             )
             PermissionItem(
                 icon = Icons.Filled.Notifications,
                 title = stringResource(R.string.settings_notification_permission),
                 granted = state.notificationPermissionGranted,
+                modifier = Modifier.clickable { openAppSettings(context) },
             )
         }
 
         SectionHeader(title = stringResource(R.string.settings_section_about))
         SettingsGroup {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_privacy_policy)) },
+                supportingContent = { Text(stringResource(R.string.settings_privacy_policy_hint)) },
+                leadingContent = { SettingIcon(Icons.Filled.Description) },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+                modifier = Modifier.clickable {
+                    openUrl(context, context.getString(R.string.privacy_policy_url))
+                },
+            )
             ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_app_version)) },
                 leadingContent = { SettingIcon(Icons.Filled.Info) },
@@ -184,10 +208,16 @@ private fun SettingIcon(icon: ImageVector) {
 }
 
 @Composable
-private fun PermissionItem(icon: ImageVector, title: String, granted: Boolean) {
+private fun PermissionItem(
+    icon: ImageVector,
+    title: String,
+    granted: Boolean,
+    modifier: Modifier = Modifier,
+) {
     ListItem(
         headlineContent = { Text(title) },
         leadingContent = { SettingIcon(icon) },
+        modifier = modifier,
         trailingContent = {
             Text(
                 text = stringResource(
@@ -233,4 +263,19 @@ private fun TimePickerDialog(
         title = { Text(stringResource(R.string.settings_eod_time)) },
         text = { TimePicker(state = pickerState) },
     )
+}
+
+private fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.fromParts("package", context.packageName, null)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    context.startActivity(intent)
+}
+
+private fun openUrl(context: Context, url: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    runCatching { context.startActivity(intent) }
 }

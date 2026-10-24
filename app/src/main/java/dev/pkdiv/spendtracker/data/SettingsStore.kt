@@ -18,6 +18,8 @@ data class AppSettings(
     val lastEodDate: String? = null,
     val lastEomMonth: String? = null,
     val notificationsEnabled: Boolean = true,
+    val smsDisclosureShown: Boolean = false,
+    val notificationRationaleShown: Boolean = false,
 )
 
 class SettingsStore(private val context: Context) {
@@ -28,6 +30,8 @@ class SettingsStore(private val context: Context) {
         val LAST_EOD_DATE = stringPreferencesKey("last_eod_date")
         val LAST_EOM_MONTH = stringPreferencesKey("last_eom_month")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        val SMS_DISCLOSURE_SHOWN = booleanPreferencesKey("sms_disclosure_shown")
+        val NOTIFICATION_RATIONALE_SHOWN = booleanPreferencesKey("notification_rationale_shown")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -37,6 +41,8 @@ class SettingsStore(private val context: Context) {
             lastEodDate = prefs[Keys.LAST_EOD_DATE],
             lastEomMonth = prefs[Keys.LAST_EOM_MONTH],
             notificationsEnabled = prefs[Keys.NOTIFICATIONS_ENABLED] ?: true,
+            smsDisclosureShown = prefs[Keys.SMS_DISCLOSURE_SHOWN] ?: false,
+            notificationRationaleShown = prefs[Keys.NOTIFICATION_RATIONALE_SHOWN] ?: false,
         )
     }
 
@@ -62,6 +68,18 @@ class SettingsStore(private val context: Context) {
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.settingsDataStore.edit { prefs ->
             prefs[Keys.NOTIFICATIONS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setSmsDisclosureShown(shown: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[Keys.SMS_DISCLOSURE_SHOWN] = shown
+        }
+    }
+
+    suspend fun setNotificationRationaleShown(shown: Boolean) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[Keys.NOTIFICATION_RATIONALE_SHOWN] = shown
         }
     }
 }

@@ -235,8 +235,9 @@ taste:
 
 - [ ] CI builds **only** on `v*` tags and manual dispatch (do not add
       branch-push triggers).
-- [ ] Releases are tagged with semantic-version tags (`v0.x.0`) and the APK is
-      attached to a GitHub Release from CI secrets (never committed).
+- [ ] Releases are tagged with semantic-version tags (`v0.x.0`); CI derives
+      `versionName`/`versionCode` from the tag and attaches the AAB (Play) plus a
+      sideloadable APK to a GitHub Release from CI secrets (never committed).
 - [ ] **Never** commit the keystore or signing credentials.
 - [ ] Keep `AGENTS.md` §2/§3, `README.md`, and these docs in sync as features
       land.

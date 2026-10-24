@@ -16,7 +16,7 @@ work = "2.9.1"
 coroutines = "1.9.0"
 junit5 = "5.11.4"
 turbine = "1.2.0"
-robolectric = "4.14.1"
+robolectric = "4.17"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

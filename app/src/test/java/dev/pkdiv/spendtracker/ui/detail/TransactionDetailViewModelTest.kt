@@ -25,8 +25,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.shadows.ShadowApplication
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class)
@@ -34,7 +34,8 @@ class TransactionDetailViewModelTest : ViewModelTest() {
 
     @Before
     fun denySmsPermission() {
-        ShadowApplication.getInstance().denyPermissions(Manifest.permission.READ_SMS)
+        shadowOf(ApplicationProvider.getApplicationContext<Application>())
+            .denyPermissions(Manifest.permission.READ_SMS)
     }
 
     private fun entity(rawBody: String?) = TransactionEntity(
@@ -161,7 +162,8 @@ class TransactionDetailViewModelTest : ViewModelTest() {
     @Test
     fun unavailable_deleted_whenBodyNullAndPermissionGranted() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        ShadowApplication.getInstance().grantPermissions(Manifest.permission.READ_SMS)
+        shadowOf(ApplicationProvider.getApplicationContext<Application>())
+            .grantPermissions(Manifest.permission.READ_SMS)
         val db = Room.inMemoryDatabaseBuilder(context, SpendTrackerDatabase::class.java)
             .allowMainThreadQueries()
             .build()

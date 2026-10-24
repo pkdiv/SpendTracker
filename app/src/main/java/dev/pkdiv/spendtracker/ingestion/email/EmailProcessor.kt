@@ -31,6 +31,8 @@ class EmailProcessor @Inject constructor(
                 )
                 result
             }
+
+            is ParseResult.Ignored -> result
         }
     }
 }

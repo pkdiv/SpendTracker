@@ -82,6 +82,8 @@ class DisclosureViewModel @Inject constructor(
 
     private fun hasSmsPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) ==
+            PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECEIVE_SMS) ==
             PackageManager.PERMISSION_GRANTED
 
     private fun needsNotificationPermission(): Boolean =

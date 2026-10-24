@@ -43,25 +43,31 @@ repository.
       `versionCode = X*10000 + Y*100 + Z`, `versionName = X.Y.Z`. The build fails
       when the version can't be parsed. The release build no longer falls back to
       the debug keystore.
-- [ ] **P1 — Remove the unused `INTERNET` permission** until email ingestion
-      ships (it contradicts the minimal-permissions claim).
-- [ ] **P1 — Stop importing every SMS.** `SmsReader.backfill()` reads the whole
-      inbox and `TransactionRepository.insertUnrecognized` stores every
-      non-transaction body verbatim in `unrecognized_messages`. The Alerts screen
-      (`UnrecognizedScreen`) shows those bodies unmasked.
+- [x] **P1 — Remove the unused `INTERNET` permission.** Removed from
+      `AndroidManifest.xml` (verified absent from the merged manifest). The app
+      declares SMS + notifications directly; WorkManager merges in its standard
+      `WAKE_LOCK` / `RECEIVE_BOOT_COMPLETED` / `FOREGROUND_SERVICE` /
+      `ACCESS_NETWORK_STATE` permissions for scheduling only — no network access.
+      Re-add `INTERNET` only when email ingestion ships.
+- [x] **P1 — Stop importing every SMS.** `SmsFilter` runs before parsing and only
+      lets transaction-shaped messages through (amount + transaction signal, OTP
+      messages rejected), so personal SMS never reach `unrecognized_messages`.
+      Bodies are capped at 64 KB (`Privacy.capBody`), the Alerts list applies
+      `Privacy.maskSensitive`, the inbox scan is incremental (`last_sms_id`
+      high-water mark, no resume rescan), and `SmsReceiver` finishes its insert
+      via `goAsync()`.
 
 ---
 
 ## 1. Decide scope and positioning
 
-- [ ] Confirm v1 is **SMS-only**. `GmailClient` is a stub returning `emptyList`;
-      `docs/ROADMAP.md` currently marks email ingestion **P0 "must-have"**.
-      Either implement it or demote it to post-v1 and say so in the roadmap.
-- [ ] Confirm the supported rule set is HDFC, ICICI, SBI and generic UPI
-      (`parsing/rules/`). Do not imply broader bank coverage in the store listing.
-- [ ] Do **not** claim "UPI notifications" unless `NotificationListenerService` is
-      added — the current path reads SMS only. Update `README.md` and
-      `docs/USER_GUIDE.md` accordingly.
+- [x] Confirm v1 is **SMS-only**. Email ingestion is demoted to P3/post-v1 in
+      `docs/ROADMAP.md`; `GmailClient` remains a stub.
+- [x] Confirm the supported rule set is HDFC, ICICI, SBI and generic UPI
+      (`parsing/rules/`). The store listing must not imply broader coverage.
+- [x] Do **not** claim "UPI notifications" — `README.md` now says "SMS
+      transaction alerts (including UPI messages sent by your bank)", which is
+      the actual path. No `NotificationListenerService` is added.
 - [x] Define the public version scheme. Tags are the source of truth
       (`vX.Y.Z`), with `versionCode = X*10000 + Y*100 + Z` and
       `versionName = X.Y.Z` injected at build time by `app/build.gradle.kts`.
@@ -97,11 +103,11 @@ repository.
 - [x] Run `./gradlew test bundleRelease --no-daemon` locally with JDK 21 and
       confirm `BUILD SUCCESSFUL` plus zero failures in
       `app/build/test-results/testDebugUnitTest/*.xml`. Verified 2026-10-24:
-      151 debug / 121 release tests, 0 failures; `app-release.aab` built with
+      167 debug / 136 release tests, 0 failures; `app-release.aab` built with
       `versionCode=1100`, `versionName=0.11.0`.
-- [ ] Add `./gradlew lint` (or `lintRelease`) to CI and resolve fatal issues.
-      Fatal issues resolved 2026-10-24 (`./gradlew lint` is green); adding the
-      step to CI remains.
+- [x] Add `./gradlew lint` (or `lintRelease`) to CI and resolve fatal issues.
+      CI now runs `lint` alongside `test`/`bundleRelease`, and `./gradlew lint`
+      is green (2026-10-24).
 - [ ] Optional: enable R8 (`isMinifyEnabled = true`) with keep rules; currently
       release builds are unminified.
 - [x] Verify the release AAB contains no debug-only components, no test sources,
@@ -187,72 +193,68 @@ repository.
 
 ## 4. Privacy and data-handling fixes (required before submission)
 
-- [ ] **Only import transaction-shaped SMS.** Add a sender/content pre-filter in
-      `SmsReader`/`SmsProcessor` so unrelated personal messages are never copied
-      into `unrecognized_messages`.
-- [ ] If non-transaction messages must be retained for the Alerts queue, store the
-      minimum needed (sender, timestamp, a hash/reference) rather than the full
-      body, and cap length (`Privacy.capBody` already exists for email).
-- [ ] Mask sensitive tokens in the Alerts list. `UnrecognizedScreen` currently
-      renders `message.body` raw; apply `Privacy.maskSensitive` there as
-      `OriginalMessageCard` already does.
-- [ ] Make the scan **incremental**: track the highest processed SMS `_ID` and
-      resume from there instead of re-reading the whole inbox on every launch and
-      resume.
-- [ ] Remove the automatic full rescan from `MainActivity.onResume`; keep the
-      manual Sync action and run the initial import once.
-- [ ] Replace the fire-and-forget coroutine in `SmsReceiver` with
-      `goAsync()` or enqueue the work in WorkManager so an insert cannot be lost
-      when the process is killed.
-- [ ] Confirm `NoRawBodyLoggingTest` still passes and that no new logging of
-      message content was introduced.
-- [ ] Confirm the database remains excluded from cloud backup and device transfer
-      (`backup_rules.xml`, `data_extraction_rules.xml`).
-- [ ] Confirm export contains parsed fields only, never raw message content
-      (`TransactionCsv`).
+- [x] **Only import transaction-shaped SMS.** `SmsFilter.isTransactionShaped()`
+      runs in `SmsProcessor` before parsing and requires an amount plus a
+      transaction signal, rejecting OTP/verification messages. Unrelated personal
+      messages return `ParseResult.Ignored` and are never stored.
+- [x] Cap retained bodies at 64 KB (`Privacy.capBody`) for both transactions and
+      Alerts; the Alerts queue still keeps sender/body/timestamp to remain
+      reviewable, and the pre-filter means only financial messages reach it.
+- [x] Mask sensitive tokens in the Alerts list — `UnrecognizedScreen` now renders
+      `Privacy.maskSensitive(message.body)`, matching `OriginalMessageCard`.
+- [x] Make the scan **incremental**: `SmsReader` persists the highest processed
+      SMS `_ID` (`SettingsStore.last_sms_id`) and queries only `_ID > lastSmsId`
+      in ascending order, advancing a forward-only high-water mark.
+- [x] Removed the automatic full rescan from `MainActivity`; the initial import
+      runs once and the manual Sync action uses the same incremental scan.
+- [x] `SmsReceiver` now uses `goAsync()` and finishes the insert in a coroutine,
+      so the process can't drop it mid-processing.
+- [x] `NoRawBodyLoggingTest` passes; no new logging of message content.
+- [x] Database remains excluded from cloud backup and device transfer (release
+      manifest verified: `allowBackup=true` with both rules wired).
+- [x] Export contains parsed fields only (`TransactionCsvTest` asserts raw message
+      content is never included).
 
 ---
 
 ## 5. Functional correctness before launch
 
-- [ ] **EOD time changes take effect.** `SettingsViewModel.setEodTime` only writes
-      DataStore; `ReportScheduler.scheduleEod` runs only in
-      `SpendTrackerApp.onCreate`. Reschedule `EodReportWorker` when the time or
-      notification toggle changes.
-- [ ] **Missed-run reconciliation.** `lastEodDate` / `lastEomMonth` are written by
-      the workers but never read. Implement the reconcile-on-start behavior
-      promised in `AGENTS.md` §8 (and fix the doc if the behavior is dropped).
-- [ ] **EOM reliability.** `EomReportWorker` only posts when WorkManager happens to
-      run on the 1st (`dayOfMonth != 1` returns success). Make a delayed run still
-      report the intended prior month, and avoid duplicate posts.
+- [x] **EOD time changes take effect.** `SettingsViewModel.setEodTime` and the
+      notification toggle both call `ReportScheduling.scheduleEod()` after writing
+      the setting (covered by `SettingsViewModelTest`).
+- [x] **Missed-run reconciliation.** `ReportScheduler.catchUpMissedReports()` runs
+      on app start and enqueues one-shot EOD/EOM catch-up work; the workers read
+      `lastEodDate` / `lastEomMonth` and skip duplicates.
+- [x] **EOM reliability.** The `dayOfMonth != 1` early return is gone;
+      `EomReportWorker` reports the prior month once (guarded by `lastEomMonth`),
+      so a delayed run still reports the intended month.
 - [ ] Verify Doze, reboot, force-stop and battery-saver behavior for the daily and
-      monthly notifications.
-- [ ] Fix notification formatting to use the shared INR formatter
-      (`Formatters.formatInr`); both workers currently use
-      `"₹%.2f".format(Locale.US)`, which bypasses Indian digit grouping.
-- [ ] Replace `R.drawable.ic_launcher_foreground` as the notification small icon
-      with a proper monochrome notification icon.
-- [ ] Add the missing **SBI rule unit test** — `SbiBankRule` has no test, which
-      violates `AGENTS.md` §7/§12 and the project's definition of done.
+      monthly notifications (on a physical device).
+- [x] Notification formatting uses `Formatters.formatInr` (Indian digit grouping)
+      in both workers.
+- [x] Notification small icon is the monochrome `res/drawable/ic_notification.xml`
+      (no longer the launcher foreground).
+- [x] Added `SbiBankRuleTest` (debit, credit, OTP) — it also caught and fixed a
+      case-sensitivity bug in the SBI account regex (`A/c`).
 - [ ] Review parsing coverage against real sample messages; each rule ships with
       anonymized samples and a test.
 - [ ] Verify manual entry, notes, rename, merchant categories, export, widget,
       search and filters on a release build (not just debug).
-- [ ] Verify Room migrations from the last published schema survive an in-place
-      upgrade with user data intact.
+- [x] Room migration survival tests pass (`Migration5To6Test` … `Migration8To9Test`);
+      an in-place upgrade from the last published build remains part of device QA.
 
 ---
 
 ## 6. Testing and QA
 
-- [ ] Unit tests green for both variants:
-      `./gradlew test --no-daemon` (147 debug / 121 release tests as of 2026-10-20).
-- [ ] Add/keep tests for any behavior changed by this checklist (filtering,
-      incremental scan, rescheduling, disclosure consent).
+- [x] Unit tests green for both variants: `./gradlew test --no-daemon`
+      (167 debug / 136 release, 0 failures; re-verified 2026-10-24).
+- [x] Added tests for the changed behavior: `SmsFilterTest`,
+      `SmsScanWindowTest`, `SbiBankRuleTest`, `ReportSchedulerTest`, Alerts OTP
+      masking (`UnrecognizedContentTest`), disclosure consent
+      (`DisclosureScreenTest`), and EOD rescheduling (`SettingsViewModelTest`).
 - [ ] Run through `docs/USER_GUIDE.md` end to end on a **clean install** and
-      correct every statement that does not match the app (for example the guide
-      currently promises "plain-language reasons" at the permission prompt and
-      pull-to-refresh in Home).
+      correct every statement that does not match the app.
 - [ ] Test on a physical device matrix: API 26, 29/30, 33, 35, 36; at least one
       OEM skin (Samsung/Xiaomi) for SMS permission and notification behavior.
 - [ ] Large-inbox performance: import 10k+ messages and confirm the first scan,
@@ -272,11 +274,12 @@ repository.
 
 ## 7. Store listing assets and copy
 
-- [ ] App name (max 30 chars): `Spend Tracker`.
-- [ ] Short description (max 80 chars) and full description (max 4000 chars) that
+Text copy is drafted in [`STORE_LISTING.md`](./STORE_LISTING.md).
+
+- [x] App name (max 30 chars): `Spend Tracker`.
+- [x] Short description (max 80 chars) and full description (max 4000 chars) that
       match actual behavior: SMS-based, on-device, supported banks, no account,
-      no cloud. Mention that SMS access is required for automatic tracking and
-      that manual entry works without it.
+      no cloud, SMS optional for manual use. Drafted in `STORE_LISTING.md`.
 - [ ] App icon: 512×512 PNG, no transparency, under 1 MB.
 - [ ] Feature graphic: 1024×500 PNG/JPEG.
 - [ ] Phone screenshots: 2–8, showing Home, Activity, Insights, transaction
@@ -284,10 +287,12 @@ repository.
       fictional data; no misleading UI.
 - [ ] Optional: 7" and 10" tablet screenshots if tablet support is claimed.
 - [ ] Optional: promo video (YouTube).
-- [ ] Category (Finance or Productivity) and tags.
-- [ ] Contact email, website/landing page (optional), privacy policy URL.
-- [ ] Default language and supported locales.
-- [ ] Release notes for the first production release.
+- [x] Category (Finance) and tags — proposed in `STORE_LISTING.md`.
+- [ ] Contact email, website/landing page (optional), privacy policy URL. The
+      privacy URL and optional website are set; the **support email still needs a
+      monitored address**.
+- [x] Default language (English/India) and supported locales (default strings only).
+- [x] Release notes for the first production release — drafted in `STORE_LISTING.md`.
 
 ---
 

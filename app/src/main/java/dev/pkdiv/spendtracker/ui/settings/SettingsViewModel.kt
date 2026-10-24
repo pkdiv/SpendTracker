@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.pkdiv.spendtracker.data.AppSettings
 import dev.pkdiv.spendtracker.data.SettingsStore
+import dev.pkdiv.spendtracker.work.ReportScheduling
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,7 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsStore: SettingsStore,
+    private val reportScheduling: ReportScheduling,
 ) : ViewModel() {
 
     private val appVersion: String? = resolveAppVersion()
@@ -62,10 +64,16 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setNotificationsEnabled(enabled: Boolean) {
-        viewModelScope.launch { settingsStore.setNotificationsEnabled(enabled) }
+        viewModelScope.launch {
+            settingsStore.setNotificationsEnabled(enabled)
+            reportScheduling.scheduleEod()
+        }
     }
 
     fun setEodTime(hour: Int, minute: Int) {
-        viewModelScope.launch { settingsStore.setEodTime(hour, minute) }
+        viewModelScope.launch {
+            settingsStore.setEodTime(hour, minute)
+            reportScheduling.scheduleEod()
+        }
     }
 }

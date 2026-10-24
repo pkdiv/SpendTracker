@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import java.time.LocalDate
@@ -20,6 +21,7 @@ data class AppSettings(
     val notificationsEnabled: Boolean = true,
     val smsDisclosureShown: Boolean = false,
     val notificationRationaleShown: Boolean = false,
+    val lastSmsId: Long = 0,
 )
 
 class SettingsStore(private val context: Context) {
@@ -32,6 +34,7 @@ class SettingsStore(private val context: Context) {
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val SMS_DISCLOSURE_SHOWN = booleanPreferencesKey("sms_disclosure_shown")
         val NOTIFICATION_RATIONALE_SHOWN = booleanPreferencesKey("notification_rationale_shown")
+        val LAST_SMS_ID = longPreferencesKey("last_sms_id")
     }
 
     val settings: Flow<AppSettings> = context.settingsDataStore.data.map { prefs ->
@@ -43,6 +46,7 @@ class SettingsStore(private val context: Context) {
             notificationsEnabled = prefs[Keys.NOTIFICATIONS_ENABLED] ?: true,
             smsDisclosureShown = prefs[Keys.SMS_DISCLOSURE_SHOWN] ?: false,
             notificationRationaleShown = prefs[Keys.NOTIFICATION_RATIONALE_SHOWN] ?: false,
+            lastSmsId = prefs[Keys.LAST_SMS_ID] ?: 0L,
         )
     }
 
@@ -80,6 +84,13 @@ class SettingsStore(private val context: Context) {
     suspend fun setNotificationRationaleShown(shown: Boolean) {
         context.settingsDataStore.edit { prefs ->
             prefs[Keys.NOTIFICATION_RATIONALE_SHOWN] = shown
+        }
+    }
+
+    /** High-water mark for the incremental SMS inbox scan. */
+    suspend fun setLastSmsId(smsId: Long) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[Keys.LAST_SMS_ID] = smsId
         }
     }
 }

@@ -57,8 +57,9 @@ app/src/main/java/dev/pkdiv/spendtracker/
                   rules/                    one ParsingRule per bank/PSP
                     HdfcBankRule.kt, IciciBankRule.kt, SbiBankRule.kt, UpiRule.kt
   ingestion/
-    sms/          SmsReceiver.kt            real-time SMS_RECEIVED broadcast receiver
-                  SmsReader.kt              one-shot inbox backfill
+    sms/          SmsReceiver.kt            real-time SMS_RECEIVED receiver (goAsync)
+                  SmsReader.kt              incremental inbox scan (_ID high-water mark)
+                  SmsFilter.kt              pure transaction-shaped pre-filter (drops personal SMS/OTPs)
                   SmsProcessor.kt           parse + persist for a single SMS
                   SmsBodyResolver.kt        re-fetch an SMS body by provider row id
     email/        EmailClient.kt            EmailMessage data class + EmailClient iface
@@ -112,18 +113,21 @@ and `app/src/testDebug` (Compose UI tests with `createComposeRule`, debug-only).
 ## 3. Data flow
 
 ```
-SMS arrives  ──► SmsReceiver.onReceive                 (real time, background coroutine)
+SMS arrives  ──► SmsReceiver.onReceive                 (goAsync + IO coroutine)
                  │
                  ▼
            SmsProcessor.process(sender, body, ref, ts)
                  │
-                 ├── ParserEngine.parse(sender, body, ref)        ──► ParseResult.Parsed | Unrecognized
+                 ├── SmsFilter.isTransactionShaped(...)             ──► false = Ignored (never stored)
+                 │
+                 ├── ParserEngine.parse(sender, body, ref)          ──► Parsed | Unrecognized
                  │       Parsed  ──► TransactionRepository.insert
                  │       Unrecognized ──► insertUnrecognized
                  │
-                 │  (periodic / on launch)
+                 │  (once per launch / manual Sync)
                  ▼
-           SmsReader.backfill() scans the full inbox through SmsProcessor
+           SmsReader.backfill() scans only SMS with _ID above the persisted
+           high-water mark (SettingsStore.lastSmsId) through SmsProcessor
            BackfillRawMessagesWorker fills missing bodies via SmsBodyResolver
 
 Email (future) ──► EmailProcessor.process(email) ──► TransactionRepository.insertEmail
@@ -151,8 +155,11 @@ decides `matches(sender, body)` and produces a `ParsedTransaction`
 (amount, direction, merchant, account, timestamp, rawMessageRef). Rules are
 deliberately per-sender (bank message formats diverge too much for one regex).
 A parsed transaction is always traceable to its source message via `rawMessageRef`
-(e.g. `sms:<id>`). Unmatched messages never vanish — they become
-`ParseResult.Unrecognized` and surface in the **Alerts** screen.
+(e.g. `sms:<id>`). `SmsFilter` runs first and rejects personal messages and
+OTP/verification texts (`ParseResult.Ignored`, never stored); remaining unmatched
+**transaction-shaped** messages become `ParseResult.Unrecognized` and surface in
+the **Alerts** screen with their bodies capped at 64 KB and OTP codes masked.
+Only messages above the persisted SMS `_ID` high-water mark are read.
 
 `AmountParser` is a stateless helper: it detects spend keywords
 (`debited/spent/paid/charged/withdrawn`), skips the "Avl" balance segment, and
@@ -243,10 +250,15 @@ Both are unit-tested over synthetic entity lists.
 `SpendTrackerApp.onCreate` schedules:
 - `EodReportWorker` — periodic (~daily), initial delay to the user-configured
   EOD time (`SettingsStore.eodHour/eodMinute`), posts a notification with the
-  day's spend if any, then `markEodRun(today)`. WorkManager reconciles missed
-  runs by checking `lastEodDate`.
-- `EomReportWorker` — periodic daily; early-returns unless `dayOfMonth == 1`,
-  then builds the prior month's report and posts a notification.
+  day's spend if any, then `markEodRun(today)`. It skips a day already recorded in
+  `lastEodDate`, and changing the EOD time or notification toggle reschedules it
+  via `SettingsViewModel` → `ReportScheduling.scheduleEod()`.
+- `EomReportWorker` — periodic daily; reports the prior month once, guarded by
+  `lastEomMonth`. A delayed run still reports the intended month; there is no
+  `dayOfMonth == 1` early return.
+- `ReportScheduler.catchUpMissedReports()` — enqueues one-shot catch-up runs on
+  app start when the EOD time has passed without today's report, or the prior
+  month has no EOM run (Doze/reboot/force-stop recovery).
 - `BackfillRawMessagesWorker` — one-shot, `KEEP` policy, gated on
   `READ_SMS`; `RawMessageBackfill` iteratively resolves pending rows in batches
   and stops when a batch resolves nothing (so unresolvable rows don't loop).
@@ -328,8 +340,13 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 
 ## 6. Privacy & security
 
-- **Local-first.** No network is used for parsing. `INTERNET` is declared only
-  for the future email fetch path; no message content is ever sent over it.
+- **Local-first.** No network permission is declared and no network is used for
+  parsing. `INTERNET` must only return with opt-in email ingestion, and never for
+  message content processing.
+- **Only transaction-shaped SMS are stored.** `SmsFilter.isTransactionShaped()`
+  requires an amount plus a transaction signal and rejects OTP/verification
+  messages, so unrelated personal SMS never enter the database. Alerts bodies are
+  capped at 64 KB. The scan resumes above the persisted `_ID` high-water mark.
 - **Consent before permissions.** `MainActivity` renders `DisclosureScreen`
   (`ui/disclosure/`) before any runtime permission dialog and requests
   `READ_SMS`/`RECEIVE_SMS` only from its **Allow SMS access** action. Declining
@@ -338,9 +355,9 @@ WorkManager is configured with Hilt's `WorkerFactory` via a manifest
 - **No logging of raw message content.** `NoRawBodyLoggingTest` scans the source
   tree for `Log.*`/`Timber`/`println` calls that reference `rawBody`/`rawSender`
   and fails the build if any appear.
-- **Display masking.** `Privacy.maskSensitive` redacts OTP/verification codes in
-  the message card (tap-to-reveal); raw bodies are capped at 64KB
-  (`Privacy.capBody`) and HTML email is stripped (`HtmlToText`).
+- **Display masking.** `Privacy.maskSensitive` redacts OTP/verification codes on
+  the transaction detail card (tap-to-reveal) and in the Alerts list; raw bodies
+  are capped at 64KB (`Privacy.capBody`) and HTML email is stripped (`HtmlToText`).
 - **No backups.** `backup_rules.xml` and `data_extraction_rules.xml` exclude
   `spendtracker.db*` from both cloud backup and device transfer.
 - **Export is explicit and on-device.** `TransactionCsv` writes parsed fields only
@@ -363,8 +380,13 @@ system default is newer than 21). Compose UI tests live in `src/testDebug` so th
 into production.
 
 Coverage layers:
-- **Parsing rules** — each rule (`Hdfc/Upi/...` `RuleTest`) with real anonymized
-  samples; `ParserEngineTest` covers routing + unrecognized fallback.
+- **Parsing rules** — each rule (`Hdfc/Icici/Sbi/Upi` `RuleTest`) with real
+  anonymized samples; `ParserEngineTest` covers routing + unrecognized fallback.
+- **SMS ingestion** — `SmsFilterTest` (accepts transaction alerts, rejects
+  personal/OTP/marketing messages) and `SmsScanWindowTest` (incremental `_ID`
+  selection with a forward-only high-water mark).
+- **Report scheduling** — `ReportSchedulerTest` (next EOD run is later today, or
+  tomorrow once today's time has passed).
 - **Categorization** — `TransactionCategorizerTest` covers specificity ordering
   and the `OTHER` fallback; `TransactionRepositoryCategorizationTest` covers the
   retroactive backfill (reclassifies `OTHER`, leaves non-`OTHER` and user
@@ -405,7 +427,8 @@ Coverage layers:
   **Continue without SMS**, and the notification rationale dialog.
 - **ViewModels** — `TransactionDetailViewModelTest`,
   `MerchantCategoryViewModelTest`, `HistoryViewModelTest`,
-  `UnrecognizedViewModelTest`, `FormattersTest`.
+  `UnrecognizedViewModelTest`, `SettingsViewModelTest` (including that an EOD
+  time or notification-toggle change reschedules the worker), `FormattersTest`.
 - **UI** — `TransactionDetailScreenTest` (Compose, Robolectric) for the row→detail
   flow and duplicate badge; `MerchantCategoryScreenTest` for the mapping
   add/edit/delete interactions; `HistoryFilterContentTest` for the Activity
@@ -459,9 +482,11 @@ JAVA_HOME=/home/pkdiv/.jdks/jdk-21.0.11+10 ./gradlew test assembleDebug --no-dae
 ## 9. Known gaps & future work
 
 - **Email ingestion** is stubbed (`GmailClient` returns `emptyList`); no OAuth,
-  no sync worker, IMAP fallback not started.
+  no sync worker, IMAP fallback not started. It is **post-v1** (P3 in the roadmap).
 - **Teach-a-rule** flow (regex builder / manual tagging) for the Unrecognized
   queue is not implemented.
+- `SmsFilter` is heuristic (amount + transaction signal). Review it against real
+  inbox samples so unusual transaction formats are not dropped.
 - The public privacy-policy URL (`https://pkdiv.com/SpendTracker/privacy-policy`)
   is a deploy step outside this repo: the policy text lives in
   `docs/privacy-policy.md`, and `privacy_policy_url` must keep pointing at the

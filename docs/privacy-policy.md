@@ -13,12 +13,11 @@ server, no user account, and no cloud sync.
 | --- | --- | --- |
 | **SMS messages** (`READ_SMS`, `RECEIVE_SMS`) | To find bank, card and UPI transaction alerts and extract the amount, direction, merchant, account/card last-4 and date. | Read and parsed **on-device only**. Never uploaded. |
 | **Notifications** (`POST_NOTIFICATIONS`) | To show your end-of-day and end-of-month spend summaries. | Generated **on-device only**. |
-| **Internet** (`INTERNET`) | Declared in the app manifest but **not used by any current feature**. It is reserved for a future, opt-in email import. No data is transmitted today. | Nothing is sent. |
 | **Device storage** | To keep your transactions, settings and merchant→category rules in the app's private storage. | Stays on the device. |
 
-SMS access and notification permission are requested only after an in-app
-explanation, and the app remains usable without them (you can add transactions by
-hand and view your reports).
+The app does **not** request internet access. SMS access and notification
+permission are requested only after an in-app explanation, and the app remains
+usable without them (you can add transactions by hand and view your reports).
 
 ## 2. How messages are processed
 
@@ -32,8 +31,10 @@ cloud API, analytics service, or third party.
   the source message. To keep every transaction traceable to its source, the app
   also stores the sender and text of the message it parsed. On a transaction's
   detail screen, OTP-style codes are masked by default (tap to reveal).
-- **Alerts queue** — if a message cannot be parsed as a transaction, the app may
-  keep it in an in-app Alerts tab so you can review or dismiss it. This queue is
+- **Alerts queue** — if a message looks like a bank/UPI transaction but cannot be
+  parsed, the app may keep it in an in-app Alerts tab so you can review or
+  dismiss it. Only transaction-shaped messages are retained (OTP/verification and
+  personal messages are discarded), OTP-style codes are masked, and the queue is
   stored on the device only and is never transmitted.
 - **Merchant→category rules and settings** — the rules you teach the app and your
   preferences (report time, notification toggle).

@@ -20,22 +20,6 @@ Priority tiers:
 
 ## P0 — Critical (must-have)
 
-- [ ] **Email ingestion — Gmail API (read-only)**
-  - `GmailClient` currently returns `emptyList`; `EmailProcessor` is fully wired
-    but idle. Implement the OAuth2 flow scoped to `gmail.readonly` and a
-    periodic sync worker that feeds emails through the existing
-    `EmailProcessor` → `ParserEngine` → `TransactionRepository.insertEmail`
-    pipeline.
-  - Store Gmail tokens in encrypted SharedPreferences (Keystore), never in the
-    Room DB; exclude from backup.
-  - ⚠️ **Open decision (AGENTS §11):** Gmail-only vs. IMAP fallback for v1.
-    IMAP is a new on-device socket connection and must remain read-only; it
-    also needs credential storage. Decide before designing the OAuth worker
-    cadence and how fetched messages are deduped against the `rawMessageRef`
-    uniqueness index.
-  - Acceptance: unit test `EmailProcessor` over a fake `EmailClient`; the
-    `parse → insertEmail` path already has a seam to test against.
-
 - [x] **Retroactively categorize existing transactions**
   - All rows inserted before categorization was wired are stuck as `OTHER`.
     Add an idempotent backfill (a `OneTimeWorkRequest` or an in-DB update) that
@@ -208,6 +192,22 @@ Priority tiers:
 
 These are intentionally deferred because they conflict with the
 `AGENTS.md` §3 "minimal permissions" or §10 "Non-goals" constraints.
+
+- [ ] **Email ingestion — Gmail API (read-only) — post-v1, not a v1 blocker**
+  - v1 is **SMS-only** (confirmed for the Play release). `GmailClient` currently
+    returns `emptyList`; `EmailProcessor` is wired but idle.
+  - When it ships: implement the OAuth2 flow scoped to `gmail.readonly` and a
+    periodic sync worker feeding the existing `EmailProcessor` → `ParserEngine` →
+    `TransactionRepository.insertEmail` pipeline. Store tokens in encrypted
+    SharedPreferences (Keystore), never in the Room DB; exclude from backup.
+  - Adding it also means re-adding `INTERNET` and updating the privacy policy,
+    Play Data safety declaration and permissions rationale (§3/§9).
+  - ⚠️ **Open decision (AGENTS §11):** Gmail-only vs. IMAP fallback. IMAP is a
+    new on-device socket connection and must remain read-only; it also needs
+    credential storage. Decide before designing the OAuth worker cadence and how
+    fetched messages are deduped against the `rawMessageRef` uniqueness index.
+  - Acceptance: unit test `EmailProcessor` over a fake `EmailClient`; the
+    `parse → insertEmail` path already has a seam to test against.
 
 - [ ] **Cloud sync / multi-device** — `AGENTS.md` §10 explicit non-goal.
 - [ ] **Bill-splitting** — explicit non-goal (spend visibility only).

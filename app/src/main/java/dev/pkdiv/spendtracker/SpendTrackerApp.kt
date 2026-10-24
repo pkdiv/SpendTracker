@@ -33,6 +33,7 @@ class SpendTrackerApp : Application(), Configuration.Provider {
         super.onCreate()
         reportScheduler.scheduleEod()
         reportScheduler.scheduleEom()
+        reportScheduler.catchUpMissedReports()
         scheduleRawMessageBackfill()
         scheduleCategoryBackfill()
         widgetRefresher.refresh()

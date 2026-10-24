@@ -3,6 +3,7 @@ package dev.pkdiv.spendtracker.ingestion.sms
 import dev.pkdiv.spendtracker.parsing.ParseResult
 import dev.pkdiv.spendtracker.parsing.ParserEngine
 import dev.pkdiv.spendtracker.repository.TransactionRepository
+import dev.pkdiv.spendtracker.util.Privacy
 import dev.pkdiv.spendtracker.widget.WidgetRefresher
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,16 +21,34 @@ class SmsProcessor @Inject constructor(
         receivedAtMillis: Long,
         smsId: Long? = null,
     ): ParseResult {
-        return when (val result = parser.parse(sender, body, rawMessageRef)) {
+        // Unrelated personal messages never reach the database (AGENTS §3).
+        if (!SmsFilter.isTransactionShaped(sender, body)) return ParseResult.Ignored
+
+        val capped = Privacy.capBody(body)
+        return when (val result = parser.parse(sender, capped.text, rawMessageRef)) {
             is ParseResult.Parsed -> {
-                transactionRepository.insert(result.transaction, receivedAtMillis, smsId, sender, body)
+                transactionRepository.insert(
+                    parsed = result.transaction,
+                    receivedAtMillis = receivedAtMillis,
+                    smsId = smsId,
+                    rawSender = sender,
+                    rawBody = capped.text,
+                    bodyTruncated = capped.truncated,
+                )
                 widgetRefresher.refresh()
                 result
             }
             is ParseResult.Unrecognized -> {
-                transactionRepository.insertUnrecognized(sender, body, rawMessageRef, receivedAtMillis, smsId)
+                transactionRepository.insertUnrecognized(
+                    sender = sender,
+                    body = capped.text,
+                    rawMessageRef = rawMessageRef,
+                    receivedAtMillis = receivedAtMillis,
+                    smsId = smsId,
+                )
                 result
             }
+            is ParseResult.Ignored -> result
         }
     }
 }

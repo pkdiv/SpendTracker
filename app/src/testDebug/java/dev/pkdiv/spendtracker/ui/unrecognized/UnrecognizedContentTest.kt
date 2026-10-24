@@ -97,6 +97,18 @@ class UnrecognizedContentTest {
     }
 
     @Test
+    fun otpInAlert_isMasked() {
+        setContent(
+            UnrecognizedUiState(
+                listOf(alert(1, "HDFCBK").copy(body = "Your OTP is 123456 for a Rs 100 debit")),
+            ),
+        )
+
+        compose.onNodeWithText("123456").assertDoesNotExist()
+        compose.onNodeWithText("••••", substring = true).assertExists()
+    }
+
+    @Test
     fun emptyState_hidesClearAll() {
         setContent(UnrecognizedUiState(emptyList()))
 

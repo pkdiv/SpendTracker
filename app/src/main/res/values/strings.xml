@@ -245,4 +245,6 @@
 
     <string name="notification_channel_eod">End of day reports</string>
     <string name="notification_channel_eom">End of month reports</string>
+    <string name="notification_eod_body">Spent today: %1$s</string>
+    <string name="notification_eom_body">Month total: %1$s</string>
 </resources>

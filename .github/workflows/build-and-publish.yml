@@ -58,7 +58,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew test bundleRelease assembleRelease --no-daemon -PversionName=${{ steps.version.outputs.version }}
+        run: ./gradlew test lint bundleRelease assembleRelease --no-daemon -PversionName=${{ steps.version.outputs.version }}
 
       # Versioned release for a pushed tag or a manual dispatch with a version.
       - name: Publish versioned release

@@ -27,9 +27,17 @@ class SmsReceiver : BroadcastReceiver() {
         val body = messages.joinToString(separator = "") { it.messageBody ?: "" }
         val receivedAtMillis = first.timestampMillis
         val rawMessageRef = "sms:$receivedAtMillis:${body.hashCode()}"
+
+        // Keep the receiver alive until the insert finishes; a fire-and-forget
+        // coroutine can be killed with the process before the SMS is stored.
+        val pendingResult = goAsync()
         scope.launch {
-            runCatching { smsProcessor.process(sender, body, rawMessageRef, receivedAtMillis) }
-                .onFailure { Log.e("SmsReceiver", "Failed to process SMS", it) }
+            try {
+                runCatching { smsProcessor.process(sender, body, rawMessageRef, receivedAtMillis) }
+                    .onFailure { Log.e("SmsReceiver", "Failed to process SMS", it) }
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 }

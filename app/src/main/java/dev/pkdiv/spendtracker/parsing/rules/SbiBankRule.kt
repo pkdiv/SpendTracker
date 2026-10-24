@@ -6,8 +6,14 @@ import dev.pkdiv.spendtracker.parsing.ParsedTransaction
 class SbiBankRule : ParsingRule {
     override val id = "SBI"
 
-    private val CARD = Regex("""(?:card|account|a/c|acct|Card|Account)\s+(?:xx|XX|ending|Ending)?\s*(\d{4})""")
-    private val MERCHANT = Regex("""(?:at|At|AT)\s+(.+?)(?=\s+(?:on|via|for)\b|$)""")
+    private val CARD = Regex(
+        """(?:card|account|a/c|acct)\s+(?:xx|ending)?\s*(\d{4})""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val MERCHANT = Regex(
+        """\bat\s+(.+?)(?=\s+(?:on|via|for)\b|$)""",
+        RegexOption.IGNORE_CASE,
+    )
 
     override fun matches(sender: String, body: String): Boolean =
         (sender.contains("SBI", ignoreCase = true) || sender.contains("State Bank", ignoreCase = true)) &&

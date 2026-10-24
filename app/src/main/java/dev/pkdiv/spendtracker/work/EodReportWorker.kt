@@ -18,12 +18,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.pkdiv.spendtracker.MainActivity
 import dev.pkdiv.spendtracker.R
+import dev.pkdiv.spendtracker.data.AppSettings
 import dev.pkdiv.spendtracker.data.SettingsStore
+import dev.pkdiv.spendtracker.reports.DailyReport
 import dev.pkdiv.spendtracker.reports.ReportGenerator
-import java.math.BigDecimal
+import dev.pkdiv.spendtracker.ui.Formatters
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.coroutines.flow.first
 
 @HiltWorker
@@ -36,18 +36,20 @@ class EodReportWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val today = LocalDate.now()
-        val report = reportGenerator.dailyReport(today)
+        val settings = settingsStore.settings.first()
+        // A catch-up run and the periodic run must not both post for the same day.
+        if (settings.lastEodDate == today.toString()) return Result.success()
 
+        val report = reportGenerator.dailyReport(today)
         if (report.transactionCount > 0) {
-            postNotification(report.totalSpend, report.transactionCount)
+            postNotification(report, settings)
         }
 
         settingsStore.markEodRun(today)
         return Result.success()
     }
 
-    private fun postNotification(total: BigDecimal, count: Int) {
-        val settings = kotlinx.coroutines.runBlocking { settingsStore.settings.first() }
+    private fun postNotification(report: DailyReport, settings: AppSettings) {
         if (!settings.notificationsEnabled) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -61,9 +63,12 @@ class EodReportWorker @AssistedInject constructor(
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = applicationContext.getString(R.string.home_total_spend) + ": " + format(total)
+        val text = applicationContext.getString(
+            R.string.notification_eod_body,
+            Formatters.formatInr(report.totalSpend),
+        )
         val notification = NotificationCompat.Builder(applicationContext, EOD_CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(applicationContext.getString(R.string.reports_eod))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -85,11 +90,10 @@ class EodReportWorker @AssistedInject constructor(
         }
     }
 
-    private fun format(amount: BigDecimal): String = "₹%.2f".format(Locale.US, amount)
-
     companion object {
         const val EOD_CHANNEL = "eod_reports"
         const val EOD_ID = 1001
         const val UNIQUE_WORK = "eod_report_work"
+        const val CATCH_UP_WORK = "eod_report_catch_up"
     }
 }

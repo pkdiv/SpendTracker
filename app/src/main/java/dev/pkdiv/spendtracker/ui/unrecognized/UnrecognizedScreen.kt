@@ -40,6 +40,7 @@ import dev.pkdiv.spendtracker.data.db.UnrecognizedMessageEntity
 import dev.pkdiv.spendtracker.ui.components.EmptyState
 import dev.pkdiv.spendtracker.ui.components.relativeDateLabel
 import dev.pkdiv.spendtracker.ui.theme.SpendTheme
+import dev.pkdiv.spendtracker.util.Privacy
 import java.time.ZoneId
 
 /** Keeps every collapsed alert card the same height; longer bodies expand on demand. */
@@ -134,6 +135,7 @@ fun UnrecognizedContent(
 private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit) {
     val zone = remember { ZoneId.systemDefault() }
     val date = remember(message.receivedAt) { message.receivedAt.atZone(zone).toLocalDate() }
+    val maskedBody = remember(message.body) { Privacy.maskSensitive(message.body) }
     var expanded by remember { mutableStateOf(false) }
     var hasOverflow by remember { mutableStateOf(false) }
 
@@ -172,7 +174,7 @@ private fun AlertCard(message: UnrecognizedMessageEntity, onDismiss: () -> Unit)
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = message.body,
+                text = maskedBody,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = if (expanded) Int.MAX_VALUE else COLLAPSED_LINES,
                 overflow = TextOverflow.Ellipsis,

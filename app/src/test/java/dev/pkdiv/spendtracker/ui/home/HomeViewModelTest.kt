@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import dev.pkdiv.spendtracker.data.SettingsStore
 import dev.pkdiv.spendtracker.data.db.SpendTrackerDatabase
 import dev.pkdiv.spendtracker.data.db.TransactionEntity
 import dev.pkdiv.spendtracker.ingestion.sms.SmsProcessor
@@ -54,7 +55,11 @@ class HomeViewModelTest : ViewModelTest() {
             HomeViewModel(
                 context,
                 repository,
-                SmsReader(context, SmsProcessor(ParserEngine(), repository, widgetRefresher)),
+                SmsReader(
+                    context,
+                    SmsProcessor(ParserEngine(), repository, widgetRefresher),
+                    SettingsStore(context),
+                ),
             ),
         )
 

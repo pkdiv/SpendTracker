@@ -32,9 +32,10 @@ before the Android prompt:
   the app still works: add transactions by hand and view your reports.
 - **Notifications** — *Needed for the daily summary.* On Android 13+ the
   end-of-day (EOD) report can't post without it.
-- **Internet** — *Declared in the app but not used today.* It is reserved for a
-  future email import. No message content is ever sent over the network; parsing
-  is 100% on-device.
+
+Spend Tracker does **not** request internet access, location, contacts, or any
+other permission. Parsing is 100% on-device, and only messages that look like
+bank/UPI transactions are imported — personal messages are ignored.
 
 The **first time you open the app**, a disclosure screen explains what is
 accessed, why, and that it stays on your phone. Automatic tracking is switched on
@@ -137,11 +138,12 @@ The **Insights** tab holds the monthly report:
 ## Alerts
 
 The **Alerts** tab collects transaction messages the app couldn't understand
-(yet). Tap **Dismiss** on one you've checked, or use **Clear all** in the header
-to remove every alert at once (you'll be asked to confirm). Dismissed and cleared
-alerts stay gone — the app remembers them, so re-scanning your inbox won't bring
-them back. Leaving an alert queued is fine — new unrecognized messages appear
-here with a badge count on the tab.
+(yet). Only messages that look financial reach this queue, and OTP-style codes
+are masked. Tap **Dismiss** on one you've checked, or use **Clear all** in the
+header to remove every alert at once (you'll be asked to confirm). Dismissed and
+cleared alerts stay gone — the app remembers them, so re-scanning your inbox
+won't bring them back. Leaving an alert queued is fine — new unrecognized
+messages appear here with a badge count on the tab.
 
 ## Working with a transaction
 
@@ -242,7 +244,8 @@ Spend Tracker is built around these guarantees:
 - **Parsing is on-device and rule-based.** No message content is sent to any LLM
   or cloud API.
 - **Alerts stay local too.** Messages the app couldn't parse wait in the Alerts
-  tab only on this device; they are never uploaded.
+  tab only on this device; they are never uploaded. Only transaction-shaped
+  messages are kept, and OTP codes are masked.
 - **Backups exclude your data.** The local database is explicitly excluded from
   Android's cloud backup *and* device transfer, so resetting or moving your phone
   won't upload your transactions — and won't restore them either. Keep that in mind if you change phones.

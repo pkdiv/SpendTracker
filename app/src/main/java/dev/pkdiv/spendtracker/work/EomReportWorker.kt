@@ -18,11 +18,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dev.pkdiv.spendtracker.MainActivity
 import dev.pkdiv.spendtracker.R
+import dev.pkdiv.spendtracker.data.AppSettings
 import dev.pkdiv.spendtracker.data.SettingsStore
+import dev.pkdiv.spendtracker.reports.MonthlyReport
 import dev.pkdiv.spendtracker.reports.ReportGenerator
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import dev.pkdiv.spendtracker.ui.Formatters
+import java.time.YearMonth
 import kotlinx.coroutines.flow.first
 
 @HiltWorker
@@ -34,20 +35,22 @@ class EomReportWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        if (LocalDate.now().dayOfMonth != 1) return Result.success()
-        val priorMonth = LocalDate.now().minusMonths(1).withDayOfMonth(1)
-        val report = reportGenerator.monthlyReport(priorMonth)
+        val priorMonth = YearMonth.now().minusMonths(1)
+        val monthKey = priorMonth.toString()
+        val settings = settingsStore.settings.first()
+        // A delayed run (Doze, reboot) still reports the intended prior month, once.
+        if (settings.lastEomMonth == monthKey) return Result.success()
 
+        val report = reportGenerator.monthlyReport(priorMonth.atDay(1))
         if (report.transactionCount > 0) {
-            postNotification(report.totalSpend)
+            postNotification(report, settings)
         }
 
-        settingsStore.markEomRun(priorMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")))
+        settingsStore.markEomRun(monthKey)
         return Result.success()
     }
 
-    private fun postNotification(total: java.math.BigDecimal) {
-        val settings = kotlinx.coroutines.runBlocking { settingsStore.settings.first() }
+    private fun postNotification(report: MonthlyReport, settings: AppSettings) {
         if (!settings.notificationsEnabled) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -61,9 +64,12 @@ class EomReportWorker @AssistedInject constructor(
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val text = applicationContext.getString(R.string.reports_month_total) + ": ₹%.2f".format(Locale.US, total)
+        val text = applicationContext.getString(
+            R.string.notification_eom_body,
+            Formatters.formatInr(report.totalSpend),
+        )
         val notification = NotificationCompat.Builder(applicationContext, EOM_CHANNEL)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(applicationContext.getString(R.string.reports_eom))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -89,5 +95,6 @@ class EomReportWorker @AssistedInject constructor(
         const val EOM_CHANNEL = "eom_reports"
         const val EOM_ID = 1002
         const val UNIQUE_WORK = "eom_report_work"
+        const val CATCH_UP_WORK = "eom_report_catch_up"
     }
 }

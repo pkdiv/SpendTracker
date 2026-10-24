@@ -9,6 +9,8 @@ import dev.pkdiv.spendtracker.export.ExportFileWriter
 import dev.pkdiv.spendtracker.ingestion.sms.ContentResolverSmsBodyResolver
 import dev.pkdiv.spendtracker.ingestion.sms.SmsBodyResolver
 import dev.pkdiv.spendtracker.widget.WidgetRefresher
+import dev.pkdiv.spendtracker.work.ReportScheduler
+import dev.pkdiv.spendtracker.work.ReportScheduling
 import dev.pkdiv.spendtracker.work.WidgetScheduler
 
 @Module
@@ -23,4 +25,7 @@ abstract class BindingModule {
 
     @Binds
     abstract fun bindWidgetRefresher(impl: WidgetScheduler): WidgetRefresher
+
+    @Binds
+    abstract fun bindReportScheduling(impl: ReportScheduler): ReportScheduling
 }

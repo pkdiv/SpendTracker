@@ -71,8 +71,7 @@ money, lend, or connect to your accounts.
 ## Contact and links (required in Play Console)
 
 - **Privacy policy:** <https://pkdiv.com/SpendTracker/privacy-policy> (must be live)
-- **Support contact:** the developer's monitored email address — **not stored in
-  this repo**, fill it in the Play Console.
+- **Support contact:** <developer@pkdiv.com>
 - **Website (optional):** <https://pkdiv.com/SpendTracker>
 
 ## Default language and locales

@@ -101,6 +101,7 @@ that feature is released, and the effective date above will change.
 ## 11. Contact
 
 Questions about this policy or the app's data handling:
+[developer@pkdiv.com](mailto:developer@pkdiv.com) — or
 [open an issue at github.com/pkdiv/SpendTracker](https://github.com/pkdiv/SpendTracker/issues).
 
 ## Publishing this policy

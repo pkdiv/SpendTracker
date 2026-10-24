@@ -137,7 +137,7 @@ repository.
   - retention (data lives until the user clears app data or uninstalls);
   - how to delete data (uninstall / clear app data; no account exists);
   - third parties (none) and analytics/ads (none);
-  - contact details (GitHub issues) and effective date.
+  - contact details (`developer@pkdiv.com`) and effective date.
 - [ ] Link the policy in the Play listing **and** inside the app
       (Settings › About). In-app link: **done**. Play listing: manual.
 - [x] Make the policy match the actual behavior — it explicitly discloses the
@@ -288,9 +288,8 @@ Text copy is drafted in [`STORE_LISTING.md`](./STORE_LISTING.md).
 - [ ] Optional: 7" and 10" tablet screenshots if tablet support is claimed.
 - [ ] Optional: promo video (YouTube).
 - [x] Category (Finance) and tags — proposed in `STORE_LISTING.md`.
-- [ ] Contact email, website/landing page (optional), privacy policy URL. The
-      privacy URL and optional website are set; the **support email still needs a
-      monitored address**.
+- [x] Contact email, website/landing page (optional), privacy policy URL.
+      Support email: `developer@pkdiv.com`; privacy URL and website set.
 - [x] Default language (English/India) and supported locales (default strings only).
 - [x] Release notes for the first production release — drafted in `STORE_LISTING.md`.
 

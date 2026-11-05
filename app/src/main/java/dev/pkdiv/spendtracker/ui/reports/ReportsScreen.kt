@@ -29,6 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.pkdiv.spendtracker.R
 import dev.pkdiv.spendtracker.reports.MonthlyReport
+import dev.pkdiv.spendtracker.reports.RecurringCadence
+import dev.pkdiv.spendtracker.reports.RecurringSpend
 import dev.pkdiv.spendtracker.ui.Formatters
 import dev.pkdiv.spendtracker.ui.components.BarChart
 import dev.pkdiv.spendtracker.ui.components.BarDatum
@@ -54,10 +56,11 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
         )
 
         val report = state.report
+        val recurring = state.recurring
         when {
             state.loading -> CircularProgressIndicator(modifier = Modifier.padding(16.dp))
 
-            report == null || report.transactionCount == 0 -> EmptyState(
+            report == null || (report.transactionCount == 0 && recurring.isEmpty()) -> EmptyState(
                 title = stringResource(R.string.reports_empty),
                 message = stringResource(R.string.home_empty_message),
                 modifier = Modifier.padding(16.dp),
@@ -66,13 +69,18 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
             else -> ReportsContent(
                 monthLabel = Formatters.monthLabel(state.month),
                 report = report,
+                recurring = recurring,
             )
         }
     }
 }
 
 @Composable
-private fun ReportsContent(monthLabel: String, report: MonthlyReport) {
+private fun ReportsContent(
+    monthLabel: String,
+    report: MonthlyReport,
+    recurring: List<RecurringSpend>,
+) {
     val categories = report.categories
     val labels = categories.map { stringResource(Formatters.categoryLabelRes(it.category)) }
     val slices = categories.mapIndexed { index, spend ->
@@ -87,89 +95,165 @@ private fun ReportsContent(monthLabel: String, report: MonthlyReport) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item(key = "month") {
-            Text(
-                text = monthLabel,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        item(key = "total") {
-            MonthTotalCard(report)
-        }
-
-        item(key = "donut_header") {
-            SectionHeader(title = stringResource(R.string.reports_by_category))
-        }
-
-        item(key = "donut") {
-            DonutChart(
-                slices = slices,
-                contentDescription = stringResource(R.string.reports_donut_desc) + ": " + donutDescription,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(horizontal = 24.dp),
-            )
-        }
-
-        items(categories, key = { "cat_${it.category}" }) { spend ->
-            val colors = categoryColors(spend.category)
-            CategoryRow(
-                name = stringResource(Formatters.categoryLabelRes(spend.category)),
-                amount = Formatters.formatInr(spend.total),
-                share = share(spend.total, report.totalSpend),
-                icon = categoryIcon(spend.category),
-                containerColor = colors.container,
-                contentColor = colors.content,
-            )
-        }
-
-        item(key = "mom_header") {
-            SectionHeader(title = stringResource(R.string.reports_previous_month))
-        }
-
-        item(key = "mom_chart") {
-            BarChart(
-                bars = listOf(
-                    BarDatum(
-                        label = stringResource(R.string.reports_previous_month),
-                        valueText = Formatters.formatInr(report.previousMonthTotal),
-                        value = report.previousMonthTotal.toFloat(),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                    BarDatum(
-                        label = stringResource(R.string.reports_month_total),
-                        valueText = Formatters.formatInr(report.totalSpend),
-                        value = report.totalSpend.toFloat(),
-                        color = MaterialTheme.colorScheme.primary,
-                    ),
-                ),
-                contentDescription = stringResource(R.string.reports_mom_desc),
-            )
-        }
-
-        if (report.topMerchants.isNotEmpty()) {
-            item(key = "merchants_header") {
-                SectionHeader(title = stringResource(R.string.reports_top_merchants))
+        if (recurring.isNotEmpty()) {
+            item(key = "recurring_header") {
+                SectionHeader(title = stringResource(R.string.reports_recurring))
             }
-            items(report.topMerchants, key = { "merchant_${it.merchant}" }) { merchant ->
-                Row(
+            items(recurring, key = { "recurring_${it.cadence}_${it.merchant}_${it.amount}" }) { recurring ->
+                RecurringRow(recurring)
+            }
+        }
+
+        if (report.transactionCount > 0) {
+            item(key = "month") {
+                Text(
+                    text = monthLabel,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            item(key = "total") {
+                MonthTotalCard(report)
+            }
+
+            item(key = "donut_header") {
+                SectionHeader(title = stringResource(R.string.reports_by_category))
+            }
+
+            item(key = "donut") {
+                DonutChart(
+                    slices = slices,
+                    contentDescription = stringResource(R.string.reports_donut_desc) + ": " + donutDescription,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .semantics(mergeDescendants = true) {},
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(text = merchant.merchant, modifier = Modifier.weight(1f))
+                        .height(200.dp)
+                        .padding(horizontal = 24.dp),
+                )
+            }
+
+            items(categories, key = { "cat_${it.category}" }) { spend ->
+                val colors = categoryColors(spend.category)
+                CategoryRow(
+                    name = stringResource(Formatters.categoryLabelRes(spend.category)),
+                    amount = Formatters.formatInr(spend.total),
+                    share = share(spend.total, report.totalSpend),
+                    icon = categoryIcon(spend.category),
+                    containerColor = colors.container,
+                    contentColor = colors.content,
+                )
+            }
+
+            item(key = "mom_header") {
+                SectionHeader(title = stringResource(R.string.reports_previous_month))
+            }
+
+            item(key = "mom_chart") {
+                BarChart(
+                    bars = listOf(
+                        BarDatum(
+                            label = stringResource(R.string.reports_previous_month),
+                            valueText = Formatters.formatInr(report.previousMonthTotal),
+                            value = report.previousMonthTotal.toFloat(),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                        BarDatum(
+                            label = stringResource(R.string.reports_month_total),
+                            valueText = Formatters.formatInr(report.totalSpend),
+                            value = report.totalSpend.toFloat(),
+                            color = MaterialTheme.colorScheme.primary,
+                        ),
+                    ),
+                    contentDescription = stringResource(R.string.reports_mom_desc),
+                )
+            }
+
+            if (report.topMerchants.isNotEmpty()) {
+                item(key = "merchants_header") {
+                    SectionHeader(title = stringResource(R.string.reports_top_merchants))
+                }
+                items(report.topMerchants, key = { "merchant_${it.merchant}" }) { merchant ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .semantics(mergeDescendants = true) {},
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = merchant.merchant, modifier = Modifier.weight(1f))
+                        Text(
+                            text = Formatters.formatInr(merchant.total),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+
+            if (report.flagged.isNotEmpty()) {
+                item(key = "flagged_header") {
+                    SectionHeader(title = stringResource(R.string.reports_unusually_large))
+                }
+                item(key = "flagged_hint") {
                     Text(
-                        text = Formatters.formatInr(merchant.total),
-                        fontWeight = FontWeight.SemiBold,
+                        text = stringResource(R.string.reports_unusually_large_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                items(report.flagged, key = { "flagged_${it.timestamp}_${it.merchant}" }) { flagged ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .semantics(mergeDescendants = true) {},
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = flagged.merchant)
+                            Text(
+                                text = Formatters.dateTimeLabel(flagged.timestamp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Text(
+                            text = Formatters.formatInr(flagged.amount),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RecurringRow(item: RecurringSpend) {
+    val cadence = stringResource(
+        when (item.cadence) {
+            RecurringCadence.MONTHLY -> R.string.reports_recurring_monthly
+            RecurringCadence.WEEKLY -> R.string.reports_recurring_weekly
+        },
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .semantics(mergeDescendants = true) {},
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = item.merchant)
+            Text(
+                text = "$cadence · " + stringResource(R.string.reports_recurring_times, item.occurrences),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            text = Formatters.formatInr(item.amount),
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 

@@ -37,6 +37,7 @@ object ReportAggregator {
             categories = byCategory(debits),
             topMerchants = topMerchants(debits, 5),
             previousMonthTotal = prevDebits.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount },
+            flagged = LargeTransactionDetector.detect(debits),
         )
     }
 

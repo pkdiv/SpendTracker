@@ -64,6 +64,24 @@ class ReportAggregatorTest {
     }
 
     @Test
+    fun `monthly report flags unusually large transactions`() {
+        val current = listOf(
+            txn("100.00", "Merchant A"),
+            txn("110.00", "Merchant B"),
+            txn("95.00", "Merchant C"),
+            txn("105.00", "Merchant D"),
+            txn("500.00", "Self account", TransactionCategory.SELF_TRANSFER),
+            txn("1200.00", "Big purchase"),
+        )
+
+        val report = ReportAggregator.monthly(current, emptyList())
+
+        assertEquals(1, report.flagged.size)
+        assertEquals("Big purchase", report.flagged.single().merchant)
+        assertEquals(BigDecimal("1200.00"), report.flagged.single().amount)
+    }
+
+    @Test
     fun `self transfer debits are excluded from spend`() {
         val transactions = listOf(
             txn("500.00", "Self account", TransactionCategory.SELF_TRANSFER),

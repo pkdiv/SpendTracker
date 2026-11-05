@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.pkdiv.spendtracker.reports.MonthlyReport
+import dev.pkdiv.spendtracker.reports.RecurringSpend
 import dev.pkdiv.spendtracker.reports.ReportGenerator
 import java.time.LocalDate
 import javax.inject.Inject
@@ -16,6 +17,7 @@ data class ReportsUiState(
     val loading: Boolean = true,
     val month: LocalDate = LocalDate.now().withDayOfMonth(1),
     val report: MonthlyReport? = null,
+    val recurring: List<RecurringSpend> = emptyList(),
 )
 
 @HiltViewModel
@@ -34,7 +36,13 @@ class ReportsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ReportsUiState(loading = true, month = month)
             val report = reportGenerator.monthlyReport(month)
-            _uiState.value = ReportsUiState(loading = false, month = month, report = report)
+            val recurring = reportGenerator.recurringSpend()
+            _uiState.value = ReportsUiState(
+                loading = false,
+                month = month,
+                report = report,
+                recurring = recurring,
+            )
         }
     }
 

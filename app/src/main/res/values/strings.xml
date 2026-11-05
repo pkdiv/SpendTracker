@@ -83,6 +83,12 @@
     <string name="reports_previous_month">Previous month</string>
     <string name="reports_by_category">By category</string>
     <string name="reports_top_merchants">Top merchants</string>
+    <string name="reports_unusually_large">Unusually large</string>
+    <string name="reports_unusually_large_hint">More than 3× a typical transaction this month</string>
+    <string name="reports_recurring">Recurring spend</string>
+    <string name="reports_recurring_monthly">Monthly</string>
+    <string name="reports_recurring_weekly">Weekly</string>
+    <string name="reports_recurring_times">%1$d times</string>
     <string name="reports_donut_desc">Spending share by category</string>
     <string name="reports_mom_desc">This month compared with last month</string>
     <string name="reports_empty">No spending recorded for this month yet</string>

@@ -72,12 +72,17 @@ Priority tiers:
   - Each rule ships with anonymized sample messages and a unit test (per
     `AGENTS.md` §7/§12).
 
-- [ ] **Large/unusual transaction flagging (EOM)**
+- [x] **Large/unusual transaction flagging (EOM)**
   - `AGENTS.md` §8 lists "unusual/large transactions flagged" for EOM as a
     *verify-against-code* item. The current `MonthlyReport` does **not** include
     it. Implement a simple heuristic (e.g. above a user-set or
     statistic-of-the-month threshold) surfaced in the Insights screen.
   - Keep local + opt-in: no server-side ML.
+  - Done: pure `LargeTransactionDetector` flags a debit when its amount exceeds
+    3× the month's median debit amount (robust to the outlier being detected,
+    no ML). `MonthlyReport.flagged` carries the flags and the Insights screen
+    renders an **Unusually large** section. Covered by
+    `LargeTransactionDetectorTest` (pure) + `ReportAggregatorTest` (wiring).
 
 - [x] **Manual transaction entry**
   - Let users record a transaction by hand (amount, date, merchant, category,
@@ -115,10 +120,16 @@ Priority tiers:
     `TransactionEditRepositoryTest`, `TransactionDetailViewModelTest`, and
     `TransactionDetailScreenTest` (Compose, `src/testDebug`).
 
-- [ ] **Subscriptions / recurring-spend detection (passive)**
+- [x] **Subscriptions / recurring-spend detection (passive)**
   - Detect recurring merchants (same amount + merchant at regular cadence) as a
     passive Insight only — no budgeting/alerting. Surfaces patterns, doesn't
     nag.
+  - Done: pure `RecurringSpendDetector` groups debits by merchant+amount and
+    flags a pair as recurring when it has ≥3 occurrences at a monthly
+    (25–35 day) or weekly (5–9 day) cadence and is still active (last seen
+    within 2× the cadence). `ReportGenerator.recurringSpend()` loads a 6-month
+    window and the Insights screen renders a **Recurring spend** section.
+    Covered by `RecurringSpendDetectorTest` (pure, 7 cases).
 
 - [x] **Export (opt-in, user-initiated only)**
   - A manual "Export" action (CSV or JSON of transactions for a selected period),

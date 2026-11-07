@@ -25,7 +25,10 @@ object AmountParser {
         """\bAvl(?:\s+(?:Limit|Bal|Balance))?\b""",
         RegexOption.IGNORE_CASE,
     )
-    private val CREDIT_WORDS = Regex("""\b(credited|credit|received|refund|added)\b""", RegexOption.IGNORE_CASE)
+    private val CREDIT_WORDS = Regex(
+        """\b(credited|received|refund|added|credit(?![\s-]*(?:card|limit)))\b""",
+        RegexOption.IGNORE_CASE,
+    )
 
     private val TIME_PATTERNS = listOf(
         "dd-MM-yyyy HH:mm:ss",

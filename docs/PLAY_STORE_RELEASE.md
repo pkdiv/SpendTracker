@@ -73,8 +73,9 @@ repository.
       `versionName = X.Y.Z` injected at build time by `app/build.gradle.kts`.
       CI validates the tag (or the `workflow_dispatch` version input) and passes
       it as `-PversionName`.
-- [ ] Confirm `applicationId = dev.pkdiv.spendtracker` is final; it is immutable
-      on Play after the first upload.
+- [x] Confirm `applicationId = dev.pkdiv.spendtracker` is final; it is immutable
+      on Play after the first upload. Verified in `app/build.gradle.kts`
+      (`applicationId` and `namespace` are both `dev.pkdiv.spendtracker`).
 
 ---
 
@@ -176,18 +177,22 @@ repository.
 
 ### 3.4 Other Play declarations
 
-- [ ] Complete **Data safety** honestly. If nothing is transmitted off-device,
-      the app generally reports no data collected/shared; still declare SMS
-      access accurately and account for user-initiated CSV export.
-- [ ] Complete the **content rating** questionnaire (expected: everyone / low
-      maturity; app has no ads, user-generated content, or purchases).
-- [ ] Complete **target audience** and **ads** declarations (no ads).
-- [ ] Confirm the **Financial services** policy does not apply (the app displays
-      spending; it does not lend, broker, or move money).
-- [ ] Confirm no other special declarations apply (news, government, health,
-      gambling, crypto).
-- [ ] Provide **app access** instructions only if a login were required — not
-      applicable here.
+Prepared answers for each item live in
+[`PLAY_CONSOLE_DECLARATIONS.md`](./PLAY_CONSOLE_DECLARATIONS.md) — transcribe
+them into Play Console.
+
+- [x] **Data safety** answers prepared: SMS (messages) and parsed financial info
+      are collected on-device only and never shared; no network, no ads, no
+      analytics. CSV export is user-initiated. Submit the prepared answers.
+- [x] **Content rating** answers prepared: everyone / low maturity; no ads, no
+      user-generated content, no purchases.
+- [x] **Target audience and ads** answers prepared: 18+ (finance tool), contains
+      ads = No.
+- [x] **Financial services** policy confirmed not applicable — the app displays
+      spending; it does not lend, broker, transfer, or move money.
+- [x] **Other special declarations** confirmed none apply (news, government,
+      health, gambling, crypto).
+- [x] **App access** confirmed not applicable — no login; SMS access is optional.
 
 ---
 

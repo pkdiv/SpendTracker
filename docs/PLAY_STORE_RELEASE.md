@@ -275,8 +275,12 @@ daily-spend chart; light and dark themes render correctly; 200% font scale is
 usable. This pass caught a **release-blocking crash**: `MIGRATION_9_10` was
 defined but never registered in `AppModule`, so every existing install crashed on
 upgrade — now fixed and guarded by `AppDatabaseMigrationTest`. It also fixed a
-bottom-nav label-clipping defect seen at 200% font scale. The physical matrix,
-large-inbox, dual-SIM, TalkBack, Doze and launch-track items below remain.
+bottom-nav label-clipping defect seen at 200% font scale. **Observed, not
+(worked-around) fixed:** the live SMS receiver stores a message without advancing
+`last_sms_id`, so the next inbox backfill re-imports it under a different
+`rawMessageRef`; each SMS therefore also appears once as a near-duplicate row
+(flagged, excluded from totals). The physical matrix, large-inbox, dual-SIM,
+TalkBack, Doze and launch-track items below remain.
 
 - [x] Unit tests green for both variants: `./gradlew test --no-daemon`
       (189 debug / 158 release, 0 failures; re-verified 2026-11-07).

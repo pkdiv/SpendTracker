@@ -61,6 +61,16 @@ class TransactionDetailViewModel @Inject constructor(
         viewModelScope.launch { transactionRepository.setNote(transactionId, note) }
     }
 
+    /** Attaches a receipt photo URI to this transaction. */
+    fun setReceipt(receiptUri: String) {
+        viewModelScope.launch { transactionRepository.setReceipt(transactionId, receiptUri) }
+    }
+
+    /** Removes the receipt photo from this transaction. */
+    fun clearReceipt() {
+        viewModelScope.launch { transactionRepository.clearReceipt(transactionId) }
+    }
+
     private fun unavailableReason(source: TransactionSource): MessageUnavailableReason {
         if (source == TransactionSource.SMS) {
             val granted = ContextCompat.checkSelfPermission(

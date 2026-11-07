@@ -38,4 +38,6 @@ data class TransactionEntity(
     val isDuplicate: Boolean = false,
     // User-added free-text note (schema v9). Null when unset.
     val note: String? = null,
+    // User-attached receipt photo URI (schema v10). Null when no receipt.
+    val receiptUri: String? = null,
 )

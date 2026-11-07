@@ -46,6 +46,9 @@ interface TransactionDao {
     @Query("UPDATE transactions SET note = :note WHERE id = :id")
     suspend fun updateNote(id: Long, note: String?)
 
+    @Query("UPDATE transactions SET receiptUri = :receiptUri WHERE id = :id")
+    suspend fun updateReceipt(id: Long, receiptUri: String?)
+
     @Query(
         """
         SELECT * FROM transactions

@@ -29,4 +29,5 @@ data class TransactionDetail(
     val bodyTruncated: Boolean,
     val isDuplicate: Boolean,
     val note: String? = null,
+    val receiptUri: String? = null,
 )

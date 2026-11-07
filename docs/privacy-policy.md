@@ -38,6 +38,9 @@ cloud API, analytics service, or third party.
   stored on the device only and is never transmitted.
 - **Merchant→category rules and settings** — the rules you teach the app and your
   preferences (report time, notification toggle).
+- **Optional receipt photos** — if you attach a receipt to a transaction, the app
+  stores only a reference (URI) to the photo you chose. The photo itself stays in
+  the location you picked it from and is never copied into the app or uploaded.
 - **Exported CSV files** — only when you explicitly export. They are written to
   the app's temporary cache and handed to the Android share sheet, and they
   contain parsed transaction fields only — never message text.

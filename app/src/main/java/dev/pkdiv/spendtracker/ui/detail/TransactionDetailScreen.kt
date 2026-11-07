@@ -30,9 +30,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
@@ -68,9 +81,24 @@ fun TransactionDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     var menuExpanded by remember { mutableStateOf(false) }
     var showRename by remember { mutableStateOf(false) }
     var showNote by remember { mutableStateOf(false) }
+
+    val receiptLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
+            viewModel.setReceipt(uri.toString())
+        }
+    }
 
     val detail = (state as? DetailUiState.Content)?.detail
         ?: (state as? DetailUiState.Unavailable)?.detail
@@ -161,12 +189,16 @@ fun TransactionDetailScreen(
             is DetailUiState.Content -> DetailContent(
                 detail = current.detail,
                 modifier = Modifier.padding(padding),
+                onAttachReceipt = { receiptLauncher.launch(arrayOf("image/*")) },
+                onRemoveReceipt = viewModel::clearReceipt,
             )
 
             is DetailUiState.Unavailable -> DetailContent(
                 detail = current.detail,
                 modifier = Modifier.padding(padding),
                 unavailableReason = current.reason,
+                onAttachReceipt = { receiptLauncher.launch(arrayOf("image/*")) },
+                onRemoveReceipt = viewModel::clearReceipt,
             )
         }
     }
@@ -199,6 +231,8 @@ internal fun DetailContent(
     detail: TransactionDetail,
     modifier: Modifier = Modifier,
     unavailableReason: MessageUnavailableReason? = null,
+    onAttachReceipt: () -> Unit = {},
+    onRemoveReceipt: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -219,6 +253,16 @@ internal fun DetailContent(
 
             NoteCard(note = detail.note)
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SectionHeader(title = stringResource(R.string.detail_receipt))
+
+        ReceiptSection(
+            receiptUri = detail.receiptUri,
+            onAttach = onAttachReceipt,
+            onRemove = onRemoveReceipt,
+        )
 
         // A hand-entered transaction has no source message to show.
         if (detail.source != TransactionSource.MANUAL) {
@@ -385,6 +429,48 @@ private fun NoteCard(note: String) {
             text = note,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Composable
+private fun ReceiptSection(
+    receiptUri: String?,
+    onAttach: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    if (receiptUri == null) {
+        TextButton(onClick = onAttach) {
+            Text(stringResource(R.string.detail_receipt_attach))
+        }
+    } else {
+        ReceiptThumbnail(uri = receiptUri)
+        TextButton(onClick = onRemove) {
+            Text(stringResource(R.string.detail_receipt_remove))
+        }
+    }
+}
+
+@Composable
+private fun ReceiptThumbnail(uri: String) {
+    val context = LocalContext.current
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, uri) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                context.contentResolver.openInputStream(Uri.parse(uri))?.use { stream ->
+                    BitmapFactory.decodeStream(stream)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+    bitmap?.let {
+        Image(
+            bitmap = it,
+            contentDescription = stringResource(R.string.detail_receipt_desc),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp),
+            contentScale = ContentScale.Fit,
         )
     }
 }

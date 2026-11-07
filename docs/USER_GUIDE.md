@@ -163,9 +163,12 @@ row overflow (three dots), you can:
 - **Add note / Edit note** — attach a free-text note to the transaction (for
   example, "split with Ravi" or a warranty reference). Open it again to change
   it; save an empty note to remove it.
+- **Attach receipt** — add a photo of the receipt to the transaction. The photo
+  is never copied into the app or uploaded; only a reference to it is stored on
+  your device. Use **Remove** to detach it.
 
-Rename and notes are available on the transaction's own screen (from its
-overflow, three dots). Category and duplicate changes update the totals
+Rename, notes, and receipts are available on the transaction's own screen (from
+its overflow, three dots). Category and duplicate changes update the totals
 immediately.
 
 ## Settings

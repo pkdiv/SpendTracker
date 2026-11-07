@@ -17,7 +17,7 @@ import java.time.Instant
         UnrecognizedMessageEntity::class,
         MerchantCategoryEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -103,6 +103,16 @@ abstract class SpendTrackerDatabase : RoomDatabase() {
         val MIGRATION_8_9 = object : Migration(8, 9) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN note TEXT")
+            }
+        }
+
+        /**
+         * Adds an optional receipt photo URI per transaction. Non-destructive: the
+         * column is nullable, so existing rows carry null and no backfill is needed.
+         */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN receiptUri TEXT")
             }
         }
     }

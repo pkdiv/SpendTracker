@@ -205,6 +205,10 @@
     <string name="detail_note_title">Note</string>
     <string name="detail_note_label">Note</string>
     <string name="detail_note_hint">Add a note for this transaction</string>
+    <string name="detail_receipt">Receipt</string>
+    <string name="detail_receipt_attach">Attach receipt</string>
+    <string name="detail_receipt_remove">Remove</string>
+    <string name="detail_receipt_desc">Receipt photo</string>
     <string name="detail_edit_save">Save</string>
     <string name="detail_edit_cancel">Cancel</string>
     <string name="detail_unknown_sender">Unknown sender</string>

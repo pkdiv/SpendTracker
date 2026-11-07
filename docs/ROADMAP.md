@@ -194,9 +194,15 @@ Priority tiers:
     `HistoryFiltersTest` (pure), `HistoryViewModelTest`, and
     `HistoryFilterContentTest` (Compose, `src/testDebug`).
 
-- [ ] **Receipt attachment (local only)**
+- [x] **Receipt attachment (local only)**
   - Optionally attach a photo per transaction, stored as a file URI (never in
     Room as a BLOB). Respects "sensitive content on-device only."
+  - Done: a nullable `receiptUri` column (schema **v10**, `MIGRATION_9_10`, no
+    backfill) stores the picked image's content URI. The detail screen gains an
+    **Attach receipt** action (SAF `OpenDocument`, no new permission) with a
+    thumbnail, and **Remove** clears it. The photo is never copied into the DB
+    or uploaded — only the URI reference is stored on-device. Covered by
+    `Migration9To10Test`.
 
 
 ## P3 — Future / out of scope for v1

@@ -178,6 +178,13 @@ class TransactionRepository @Inject constructor(
     suspend fun setNote(id: Long, note: String?) =
         transactionDao.updateNote(id, note?.trim()?.ifBlank { null })
 
+    /** Attaches a receipt photo URI to a transaction (null removes it). */
+    suspend fun setReceipt(id: Long, receiptUri: String?) =
+        transactionDao.updateReceipt(id, receiptUri?.trim()?.ifBlank { null })
+
+    /** Removes the receipt photo from a transaction. */
+    suspend fun clearReceipt(id: Long) = transactionDao.updateReceipt(id, null)
+
     /** User-taught merchant -> category overrides, ready for the editor UI. */
     fun observeMerchantCategories(): Flow<List<MerchantCategoryMapping>> =
         merchantCategoryDao.observeAll().map { rows ->
@@ -256,6 +263,7 @@ class TransactionRepository @Inject constructor(
         bodyTruncated = bodyTruncated ?: false,
         isDuplicate = isDuplicate,
         note = note,
+        receiptUri = receiptUri,
     )
 
     companion object {

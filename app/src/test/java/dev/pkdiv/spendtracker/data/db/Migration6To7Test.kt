@@ -151,6 +151,7 @@ class Migration6To7Test {
                 SpendTrackerDatabase.MIGRATION_6_7,
                 SpendTrackerDatabase.MIGRATION_7_8,
                 SpendTrackerDatabase.MIGRATION_8_9,
+                SpendTrackerDatabase.MIGRATION_9_10,
             )
             .allowMainThreadQueries()
             .build()

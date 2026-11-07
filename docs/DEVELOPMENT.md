@@ -41,7 +41,7 @@ from backup.
 ```
 app/src/main/java/dev/pkdiv/spendtracker/
   data/           SettingsStore.kt          Preferences DataStore + AppSettings
-  data/db/        SpendTrackerDatabase.kt   Room DB (v9) + migrations + TypeConverters
+  data/db/        SpendTrackerDatabase.kt   Room DB (v10) + migrations + TypeConverters
                   TransactionEntity / DAO    transactions table
                   UnrecognizedMessageEntity / DAO
                   MerchantCategoryEntity / DAO   merchant -> category override table
@@ -169,15 +169,16 @@ parses dates/timestamps from several Indian formats. Pure and unit-tested.
 
 ## 4. Data layer
 
-### Room schema (`SpendTrackerDatabase`, version 9)
+### Room schema (`SpendTrackerDatabase`, version 10)
 
 Three tables, all with exported JSON schemas under `app/schemas/` and
 migrations shipped as `Migration` objects (no destructive fallbacks):
 
 - `transactions` — amount, direction, merchant, account, category, timestamp,
   rawMessageRef, smsId, rawSender, rawBody, source, sourceRef, rawSubject,
-  receivedAt, bodyTruncated, isDuplicate, note (user free text, nullable).
-  Unique index on `rawMessageRef`; index on `receivedAt`.
+  receivedAt, bodyTruncated, isDuplicate, note (user free text, nullable),
+  receiptUri (optional receipt photo URI, nullable). Unique index on
+  `rawMessageRef`; index on `receivedAt`.
 - `unrecognized_messages` — sender, body, receivedAt, smsId, rawMessageRef
   (unique), dismissed. Alerts are **soft-dismissed** (`dismissed = 1`) rather
   than deleted: the row stays so the unique `rawMessageRef` index stops the SMS
@@ -190,9 +191,10 @@ migrations shipped as `Migration` objects (no destructive fallbacks):
 Migrations: `MIGRATION_1_2` (dedup), `_2_3` (smsId), `_3_4` (raw columns),
 `_4_5` (drop rows missing raw columns), `_5_6` (message source metadata),
 `_6_7` (duplicate flag + timestamp index), `_7_8` (alert soft-dismiss flag),
-`_8_9` (per-transaction note column).
+`_8_9` (per-transaction note column), `_9_10` (receipt URI column).
 Every migration has a verification test (see `Migration6To7Test`,
-`Migration7To8Test`, `Migration8To9Test`) asserting old-schema rows survive.
+`Migration7To8Test`, `Migration8To9Test`, `Migration9To10Test`) asserting
+old-schema rows survive.
 
 ### Categorization
 

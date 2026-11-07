@@ -2,8 +2,9 @@
 
 Text-only listing copy for Google Play. It matches the behavior documented in
 [`USER_GUIDE.md`](./USER_GUIDE.md) and the constraints in
-[`../AGENTS.md`](../AGENTS.md). Image assets (icon, feature graphic,
-screenshots) still have to be produced outside the repo.
+[`../AGENTS.md`](../AGENTS.md). The app icon is generated from the launcher art
+(`store-assets/app-icon-512.png`); the feature graphic and screenshots still have
+to be produced.
 
 ## App name (max 30 chars)
 
@@ -89,7 +90,8 @@ money, lend, or connect to your accounts.
 
 ## Assets still to produce (Play Console)
 
-- App icon: 512×512 PNG, no transparency, under 1 MB.
+- App icon: 512×512 PNG, no transparency, under 1 MB — **done**, generated from
+  the launcher art (`store-assets/app-icon-512.png`).
 - Feature graphic: 1024×500 PNG/JPEG.
 - Phone screenshots: 2–8, showing Home, Activity, Insights, transaction detail,
   Alerts and the first-run SMS disclosure. Use real or clearly fictional data.

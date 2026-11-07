@@ -88,8 +88,9 @@ repository.
       `platforms;android-36`.
 - [ ] Address Android 16 behavior changes (edge-to-edge enforcement, predictive
       back, notification/permission changes) and test on an API 36 device or
-      emulator. Edge-to-edge is already enabled in `MainActivity`; predictive
-      back uses Navigation Compose defaults.
+      emulator. Code verified: `enableEdgeToEdge()` is called in `MainActivity`
+      and predictive back is the default at `targetSdk 36` with Navigation
+      Compose. Remaining: the API 36 device pass (`PLAY_STORE_QA.md` §4).
 - [x] Replace `assembleRelease` with `bundleRelease` in CI
       (`.github/workflows/build-and-publish.yml`) and attach
       `app/build/outputs/bundle/release/*.aab` (the APK is still attached too,
@@ -105,12 +106,12 @@ repository.
       credentials securely. The upload key is not the app signing key.
 - [x] Run `./gradlew test bundleRelease --no-daemon` locally with JDK 21 and
       confirm `BUILD SUCCESSFUL` plus zero failures in
-      `app/build/test-results/testDebugUnitTest/*.xml`. Verified 2026-10-24:
-      167 debug / 136 release tests, 0 failures; `app-release.aab` built with
-      `versionCode=1100`, `versionName=0.11.0`.
+      `app/build/test-results/testDebugUnitTest/*.xml`. Re-verified 2026-11-07:
+      189 debug / 158 release tests, 0 failures; `app-release.aab` built with
+      `versionCode=1200`, `versionName=0.12.0`.
 - [x] Add `./gradlew lint` (or `lintRelease`) to CI and resolve fatal issues.
       CI now runs `lint` alongside `test`/`bundleRelease`, and `./gradlew lint`
-      is green (2026-10-24).
+      is green (re-verified 2026-11-07).
 - [ ] Optional: enable R8 (`isMinifyEnabled = true`) with keep rules; currently
       release builds are unminified.
 - [x] Verify the release AAB contains no debug-only components, no test sources,
@@ -231,6 +232,8 @@ them into Play Console.
 
 ## 5. Functional correctness before launch
 
+Device passes below run from [`PLAY_STORE_QA.md`](./PLAY_STORE_QA.md).
+
 - [x] **EOD time changes take effect.** `SettingsViewModel.setEodTime` and the
       notification toggle both call `ReportScheduling.scheduleEod()` after writing
       the setting (covered by `SettingsViewModelTest`).
@@ -241,17 +244,21 @@ them into Play Console.
       `EomReportWorker` reports the prior month once (guarded by `lastEomMonth`),
       so a delayed run still reports the intended month.
 - [ ] Verify Doze, reboot, force-stop and battery-saver behavior for the daily and
-      monthly notifications (on a physical device).
+      monthly notifications (on a physical device) — script in
+      [`PLAY_STORE_QA.md`](./PLAY_STORE_QA.md) §1.
 - [x] Notification formatting uses `Formatters.formatInr` (Indian digit grouping)
       in both workers.
 - [x] Notification small icon is the monochrome `res/drawable/ic_notification.xml`
       (no longer the launcher foreground).
 - [x] Added `SbiBankRuleTest` (debit, credit, OTP) — it also caught and fixed a
       case-sensitivity bug in the SBI account regex (`A/c`).
-- [ ] Review parsing coverage against real sample messages; each rule ships with
-      anonymized samples and a test.
+- [ ] Review parsing coverage against real sample messages. Every rule ships with
+      an anonymized sample and a test (`HdfcBankRuleTest`, `IciciBankRuleTest`,
+      `SbiBankRuleTest`, `UpiRuleTest`, `ParserEngineTest`, `AmountParserTest`);
+      validating against fresh real messages remains an ongoing check.
 - [ ] Verify manual entry, notes, rename, merchant categories, export, widget,
-      search and filters on a release build (not just debug).
+      search and filters on a release build — script in
+      [`PLAY_STORE_QA.md`](./PLAY_STORE_QA.md) §2.
 - [x] Room migration survival tests pass (`Migration5To6Test` … `Migration8To9Test`);
       an in-place upgrade from the last published build remains part of device QA.
 
@@ -259,8 +266,10 @@ them into Play Console.
 
 ## 6. Testing and QA
 
+Device checks run from [`PLAY_STORE_QA.md`](./PLAY_STORE_QA.md) §3–§10.
+
 - [x] Unit tests green for both variants: `./gradlew test --no-daemon`
-      (167 debug / 136 release, 0 failures; re-verified 2026-10-24).
+      (189 debug / 158 release, 0 failures; re-verified 2026-11-07).
 - [x] Added tests for the changed behavior: `SmsFilterTest`,
       `SmsScanWindowTest`, `SbiBankRuleTest`, `ReportSchedulerTest`, Alerts OTP
       masking (`UnrecognizedContentTest`), disclosure consent
@@ -292,7 +301,9 @@ Text copy is drafted in [`STORE_LISTING.md`](./STORE_LISTING.md).
 - [x] Short description (max 80 chars) and full description (max 4000 chars) that
       match actual behavior: SMS-based, on-device, supported banks, no account,
       no cloud, SMS optional for manual use. Drafted in `STORE_LISTING.md`.
-- [ ] App icon: 512×512 PNG, no transparency, under 1 MB.
+- [x] App icon: 512×512 PNG, no transparency, under 1 MB — generated from the
+      launcher art at
+      [`store-assets/app-icon-512.png`](./store-assets/app-icon-512.png).
 - [ ] Feature graphic: 1024×500 PNG/JPEG.
 - [ ] Phone screenshots: 2–8, showing Home, Activity, Insights, transaction
       detail, Alerts and the permission disclosure. Use real data or clearly

@@ -37,7 +37,9 @@ repository.
       `SettingsStore`.
 - [ ] **P0 — Permissions Declaration Form + demo video** for SMS access, with the
       "SMS-based money management" use case. Play Console only — see §3.3. The
-      in-app disclosure and demo steps are now in place for the recording.
+      declaration text and demo-video script are prepared in
+      [`PLAY_CONSOLE_DECLARATIONS.md`](./PLAY_CONSOLE_DECLARATIONS.md); the
+      remaining manual steps are recording the video and submitting the form.
 - [x] **P0 — Unique `versionCode` per upload.** `versionCode`/`versionName` are
       derived from the `vX.Y.Z` tag (or `-PversionName=X.Y.Z`):
       `versionCode = X*10000 + Y*100 + Z`, `versionName = X.Y.Z`. The build fails
@@ -163,15 +165,20 @@ repository.
 
 ### 3.3 Permissions Declaration Form
 
-- [ ] In Play Console: **App content › Sensitive app permissions › SMS/Call Log**
-      and declare SMS access.
-- [ ] Select the closest permitted use case: **SMS-based money management**
-      ("apps that track and manage budget"). SMS-based financial transactions is
-      the alternative if reviewers prefer it.
-- [ ] Explain precisely: transaction alerts are read on-device, parsed locally,
-      never uploaded, and non-financial SMS are not used (fix §5.1 first).
-- [ ] Record and upload the required **demo video** showing the core flow:
-      permission disclosure → SMS import → parsed transaction → report.
+Prepared declaration text and demo-video script live in
+[`PLAY_CONSOLE_DECLARATIONS.md`](./PLAY_CONSOLE_DECLARATIONS.md) (SMS Permissions
+Declaration Form) — transcribe/record from there. The prerequisite is done: only
+transaction-shaped SMS are imported and OTP/verification messages are rejected
+(§4).
+
+- [x] Steps documented for **App content › Sensitive app permissions ›
+      SMS/Call Log**; declare SMS access using the prepared content.
+- [x] Use case decided: **SMS-based money management** ("apps that track and
+      manage budget"); SMS-based financial transactions is the accepted fallback.
+- [x] Precise **declaration text prepared** (read on-device, parsed locally,
+      never uploaded, non-financial SMS unused).
+- [x] **Demo-video script prepared** (disclosure → permission → SMS import →
+      parsed transaction → report). Record and upload it in Play Console.
 - [ ] Submit and wait for approval before expecting the release to go live.
 - [ ] Re-submit the declaration if how the app uses SMS changes.
 

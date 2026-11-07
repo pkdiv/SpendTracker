@@ -1,12 +1,68 @@
 # Spend Tracker — Play Console Declarations (prepared answers)
 
-Copy-paste answers for the non-SMS Play Console declarations. Transcribe them
-into **Play Console › App content**. The **SMS/Call Log Permissions Declaration
-Form + demo video** is a separate P0 tracked in
-[`PLAY_STORE_RELEASE.md`](./PLAY_STORE_RELEASE.md) §3.3 and is not covered here.
+Copy-paste content for the Play Console **App content** declarations: the SMS
+Permissions Declaration Form (the P0) plus Data safety, content rating, target
+audience, ads and the remaining confirmations. Transcribe them into Play Console
+and record the demo video from the script below.
 
 These answers are prepared from the code as of the last review and must be
 re-checked against final behavior before submission.
+
+## SMS Permissions Declaration Form (P0)
+
+**Path:** Play Console › App content › Sensitive app permissions › SMS/Call Log →
+declare SMS access.
+
+**Use case to select:** **SMS-based money management** ("apps that track and
+manage budget"). The alternative, "SMS-based financial transactions", is
+acceptable if reviewers prefer it.
+
+### Declaration text (paste / paraphrase)
+
+> Spend Tracker reads incoming SMS on the user's device to detect bank and UPI
+> transaction alerts (debits, credits and UPI payments) and turn them into a
+> personal spending log. All parsing and storage happen entirely on the device:
+> message content is never transmitted off the device (the app has no INTERNET
+> permission), and no third party, analytics service or ad network receives it.
+> Only transaction-shaped messages are processed — the app requires an amount
+> plus a transaction signal and rejects OTP/verification messages — so
+> non-financial personal SMS are never imported or stored. Users can review and
+> dismiss any message the app could not parse, and can delete all data by
+> clearing app data or uninstalling. SMS access is optional: the app stays fully
+> usable (manual entry, history, reports) if the user declines.
+
+Key points reviewers check:
+
+- Read on-device, parsed locally, never uploaded.
+- Non-financial SMS are not used (an amount plus a transaction signal is
+  required; OTP/verification messages are rejected).
+- SMS access is optional and the app works without it.
+- A data-deletion path exists (clear app data / uninstall).
+
+### Required demo video
+
+Play requires a video of the core flow: **permission disclosure → SMS import →
+parsed transaction → report**. Keep it ~30–60s, on a device with test SMS.
+
+Shot list:
+
+1. First launch on a fresh install → the **disclosure screen** (what is read,
+   why, and that it stays on-device); show **Allow SMS access** and **Continue
+   without SMS**.
+2. Tap **Allow SMS access** → the Android runtime prompt → grant.
+3. The app imports SMS → **Home/Activity** lists parsed transactions (amount,
+   merchant, category, date).
+4. Open a **transaction detail** → the parsed fields plus the original-message
+   reference (masked).
+5. **Insights** → the end-of-day / end-of-month report (totals, category
+   breakdown, daily chart).
+6. Optional: **Alerts**, showing a dismissed message and OTP masking.
+
+Capture notes:
+
+- Use clearly fictional or anonymized data; never show real account numbers.
+- Narrate or caption the on-device / never-uploaded claim.
+- Upload unlisted (e.g. YouTube) and paste the link into the declaration.
 
 ## Data safety
 

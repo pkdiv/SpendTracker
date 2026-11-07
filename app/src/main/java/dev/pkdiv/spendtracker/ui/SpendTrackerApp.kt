@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -94,7 +95,13 @@ fun SpendTrackerApp() {
                         selected = selected,
                         onClick = { navController.navigateToTab(destination.route) },
                         alwaysShowLabel = true,
-                        label = { Text(stringResource(destination.labelRes)) },
+                        label = {
+                            Text(
+                                text = stringResource(destination.labelRes),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
                         icon = {
                             val icon = if (selected) destination.selectedIcon else destination.unselectedIcon
                             if (destination.route == ROUTE_ALERTS && unrecognizedCount > 0) {

@@ -18,6 +18,14 @@ object ReportAggregator {
             .groupBy { it.timestamp.atZone(zone).toLocalDate() }
             .mapValues { (_, txns) -> txns.fold(BigDecimal.ZERO) { acc, t -> acc + t.amount } }
 
+    /** Day-ordered spend totals for every day in [month], zero where there is no spend. */
+    fun dailyTotals(transactions: List<TransactionEntity>, month: LocalDate, zone: ZoneId): List<BigDecimal> {
+        val byDay = spendByDay(transactions, zone)
+        return (1..month.lengthOfMonth()).map { day ->
+            byDay[month.withDayOfMonth(day)] ?: BigDecimal.ZERO
+        }
+    }
+
     fun daily(transactions: List<TransactionEntity>): DailyReport {
         val debits = transactions.spend()
         return DailyReport(

@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.pkdiv.spendtracker.reports.MonthlyReport
 import dev.pkdiv.spendtracker.reports.RecurringSpend
 import dev.pkdiv.spendtracker.reports.ReportGenerator
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,7 @@ data class ReportsUiState(
     val month: LocalDate = LocalDate.now().withDayOfMonth(1),
     val report: MonthlyReport? = null,
     val recurring: List<RecurringSpend> = emptyList(),
+    val dailySpend: List<BigDecimal> = emptyList(),
 )
 
 @HiltViewModel
@@ -37,11 +39,13 @@ class ReportsViewModel @Inject constructor(
             _uiState.value = ReportsUiState(loading = true, month = month)
             val report = reportGenerator.monthlyReport(month)
             val recurring = reportGenerator.recurringSpend()
+            val dailySpend = reportGenerator.dailySpend(month)
             _uiState.value = ReportsUiState(
                 loading = false,
                 month = month,
                 report = report,
                 recurring = recurring,
+                dailySpend = dailySpend,
             )
         }
     }

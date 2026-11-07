@@ -35,6 +35,7 @@ import dev.pkdiv.spendtracker.ui.Formatters
 import dev.pkdiv.spendtracker.ui.components.BarChart
 import dev.pkdiv.spendtracker.ui.components.BarDatum
 import dev.pkdiv.spendtracker.ui.components.CategoryRow
+import dev.pkdiv.spendtracker.ui.components.DailySpendChart
 import dev.pkdiv.spendtracker.ui.components.DonutChart
 import dev.pkdiv.spendtracker.ui.components.DonutSlice
 import dev.pkdiv.spendtracker.ui.components.EmptyState
@@ -57,6 +58,7 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
 
         val report = state.report
         val recurring = state.recurring
+        val dailySpend = state.dailySpend
         when {
             state.loading -> CircularProgressIndicator(modifier = Modifier.padding(16.dp))
 
@@ -70,6 +72,7 @@ fun ReportsScreen(viewModel: ReportsViewModel = hiltViewModel()) {
                 monthLabel = Formatters.monthLabel(state.month),
                 report = report,
                 recurring = recurring,
+                dailySpend = dailySpend,
             )
         }
     }
@@ -80,6 +83,7 @@ private fun ReportsContent(
     monthLabel: String,
     report: MonthlyReport,
     recurring: List<RecurringSpend>,
+    dailySpend: List<BigDecimal>,
 ) {
     val categories = report.categories
     val labels = categories.map { stringResource(Formatters.categoryLabelRes(it.category)) }
@@ -115,6 +119,18 @@ private fun ReportsContent(
 
             item(key = "total") {
                 MonthTotalCard(report)
+            }
+
+            if (dailySpend.any { it.signum() > 0 }) {
+                item(key = "daily_header") {
+                    SectionHeader(title = stringResource(R.string.reports_daily_spend))
+                }
+                item(key = "daily_chart") {
+                    DailySpendChart(
+                        values = dailySpend,
+                        contentDescription = stringResource(R.string.reports_daily_spend_desc),
+                    )
+                }
             }
 
             item(key = "donut_header") {

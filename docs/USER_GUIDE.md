@@ -131,6 +131,8 @@ flagged against — a texted transaction.
 The **Insights** tab holds the monthly report:
 
 - Total spend and transaction count.
+- A **daily spend** bar chart showing how this month's spending is distributed
+  across days (shown only when there is spend to plot).
 - A **category breakdown** (donut chart) — tap to see the share by category.
 - **Top merchants** for the month.
 - A **month-over-month comparison** showing how this month compares to last.

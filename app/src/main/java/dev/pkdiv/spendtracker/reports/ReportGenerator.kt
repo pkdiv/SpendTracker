@@ -1,6 +1,7 @@
 package dev.pkdiv.spendtracker.reports
 
 import dev.pkdiv.spendtracker.data.db.TransactionDao
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -27,6 +28,14 @@ class ReportGenerator @Inject constructor(
         val transactions = transactionDao.between(from, to)
         val previous = transactionDao.between(prevFrom, from)
         return ReportAggregator.monthly(transactions, previous)
+    }
+
+    suspend fun dailySpend(month: LocalDate): List<BigDecimal> {
+        val start = month.withDayOfMonth(1)
+        val from = start.atStartOfDay(ZoneOffset.systemDefault()).toInstant()
+        val to = start.plusMonths(1).atStartOfDay(ZoneOffset.systemDefault()).toInstant()
+        val transactions = transactionDao.between(from, to)
+        return ReportAggregator.dailyTotals(transactions, month, ZoneId.systemDefault())
     }
 
     suspend fun recurringSpend(today: LocalDate = LocalDate.now()): List<RecurringSpend> {

@@ -161,6 +161,10 @@ Priority tiers:
   - Daily/weekly spend charts (Canvas — no chart library, per taste), trend vs.
     last month on the monthly tab, and the "See all categories" screen that the
     Home top-categories chip already links to (`onNavigateToInsights`).
+  - Done (partial): the **Daily spend** bar chart now renders on the Insights
+    screen for the selected month, drawn on a Canvas (no chart library) from the
+    pure `ReportAggregator.dailyTotals` via `ReportGenerator.dailySpend`. Trend
+    vs. last month and the "See all categories" screen remain pending.
 
 - [x] **Home-screen widget**
   - A glanceable widget showing month-to-date spend, updated from the same

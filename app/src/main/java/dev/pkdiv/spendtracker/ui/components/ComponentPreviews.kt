@@ -137,6 +137,16 @@ private fun SparklinePreview() {
     }
 }
 
+@Preview(name = "$LightName daily spend", showBackground = true)
+@Preview(name = "$DarkName daily spend", showBackground = true, uiMode = NightMode)
+@Composable
+private fun DailySpendChartPreview() {
+    PreviewScaffold {
+        DailySpendChart(values = PreviewData.dailySpend)
+        DailySpendChart(values = List(24) { java.math.BigDecimal.ZERO })
+    }
+}
+
 @Preview(name = "$LightName sync fab", showBackground = true)
 @Preview(name = "$DarkName sync fab", showBackground = true, uiMode = NightMode)
 @Composable

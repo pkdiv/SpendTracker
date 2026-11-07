@@ -125,6 +125,25 @@ class ReportAggregatorTest {
     }
 
     @Test
+    fun `dailyTotals returns zero-filled day totals for the month`() {
+        val zone = ZoneId.of("UTC")
+        val month = LocalDate.of(2026, 2, 1)
+        val transactions = listOf(
+            txn("100.00", "Merchant A", timestamp = Instant.parse("2026-02-01T10:00:00Z")),
+            txn("50.00", "Merchant B", timestamp = Instant.parse("2026-02-01T10:00:00Z")),
+            txn("75.00", "Merchant C", timestamp = Instant.parse("2026-02-03T10:00:00Z")),
+        )
+
+        val totals = ReportAggregator.dailyTotals(transactions, month, zone)
+
+        assertEquals(28, totals.size)
+        assertEquals(BigDecimal("150.00"), totals[0])
+        assertEquals(BigDecimal.ZERO, totals[1])
+        assertEquals(BigDecimal("75.00"), totals[2])
+        assertEquals(BigDecimal.ZERO, totals[27])
+    }
+
+    @Test
     fun `duplicate transactions are excluded from totals and counts`() {
         val transactions = listOf(
             txn("100.00", "Merchant A", TransactionCategory.FOOD),

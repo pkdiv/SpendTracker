@@ -81,6 +81,8 @@
     <string name="reports_eom">End of month</string>
     <string name="reports_month_total">Month total</string>
     <string name="reports_previous_month">Previous month</string>
+    <string name="reports_daily_spend">Daily spend</string>
+    <string name="reports_daily_spend_desc">Daily spending this month</string>
     <string name="reports_by_category">By category</string>
     <string name="reports_top_merchants">Top merchants</string>
     <string name="reports_unusually_large">Unusually large</string>
